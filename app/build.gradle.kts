@@ -10,6 +10,7 @@ plugins {
 dependencies {
     // Project "app" depends on project "utils". (Project paths are separated with ":", so ":utils" refers to the top-level "utils" project.)
     implementation(project(":utils"))
+    implementation("com.github.pavlovaleksei:max-bot-sdk-java:38a5293e9f")
 }
 
 application {

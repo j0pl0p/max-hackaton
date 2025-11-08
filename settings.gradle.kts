@@ -8,7 +8,9 @@ dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
     repositories {
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }
     }
+
 }
 
 plugins {
