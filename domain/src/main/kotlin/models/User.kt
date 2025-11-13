@@ -1,15 +1,14 @@
 package org.white_powerbank.models
 
+import java.util.Date
+
 data class User(
     var id: Long,
-    var max_id: Long,
-    var state_id: Long,
-    var partner_id: Long,
-    var last_activity_date: Long,
-    var is_quiting: Boolean,
-
-
-) {
-
-
-}
+    var maxId: Long,
+    var stateId: Long,
+    var partnerId: Long,
+    var lastActivityDate: Long,
+    var isQuiting: Boolean,
+    var lastStart: Date?,
+    var averageMonthlyExpenses: Long,
+)
