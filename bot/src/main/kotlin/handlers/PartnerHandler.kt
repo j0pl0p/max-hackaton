@@ -3,7 +3,7 @@ package org.white_powerbank.bot.handlers
 import org.white_powerbank.bot.keyboards.Keyboards
 import org.white_powerbank.bot.messages.BotTexts
 import org.white_powerbank.models.BotState
-import org.white_powerbank.domain.repositories.UserReposytory
+import org.white_powerbank.repositories.UsersRepository
 import ru.max.botapi.model.MessageCreatedUpdate
 
 /**
@@ -11,7 +11,7 @@ import ru.max.botapi.model.MessageCreatedUpdate
  */
 class PartnerHandler(
     private val stateManager: org.white_powerbank.bot.fsm.UserStateManager,
-    private val userReposytory: UserReposytory
+    private val usersRepository: UsersRepository
 ) : Handler {
     
     override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
@@ -22,7 +22,7 @@ class PartnerHandler(
     
     override suspend fun handle(update: MessageCreatedUpdate, currentState: BotState): HandlerResult {
         val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
-        val user = userReposytory.getUser(userId)
+        val user = usersRepository.getUserByMaxId(userId)
         val payload = MessageUtils.getPayload(update)
         
         // Обработка кнопок
@@ -46,7 +46,7 @@ class PartnerHandler(
         }
         
         // Проверяем, есть ли напарник
-        val hasPartner = user?.partner_id != null && user.partner_id > 0
+        val hasPartner = user?.partnerId != null && user.partnerId!! > 0
         
         if (hasPartner) {
             // TODO: получить информацию о напарнике через UseCase
