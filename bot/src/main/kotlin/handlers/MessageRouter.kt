@@ -6,6 +6,7 @@ import org.white_powerbank.models.BotState
 import org.white_powerbank.models.PartnerSearchStatus
 import org.white_powerbank.models.User
 import ru.max.botapi.model.MessageCreatedUpdate
+import java.time.LocalDateTime
 
 /**
  * Маршрутизатор сообщений
@@ -31,8 +32,8 @@ class MessageRouter(
                 state = BotState.MAIN_MENU,
                 partnerId = null,
                 partnerSearchStatus = PartnerSearchStatus.INACTIVE,
-                lastActivityDate = System.currentTimeMillis(),
-                isQuiting = false,
+                lastActivity = LocalDateTime.now(),
+                isQuitting = false,
                 lastStart = null,
                 averageMonthlyExpenses = 0L
             )

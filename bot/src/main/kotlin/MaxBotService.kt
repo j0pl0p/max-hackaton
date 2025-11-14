@@ -30,7 +30,8 @@ class MaxBotService(
 ) : LongPollingBot(token) {
 
     // Создаем use cases
-    private val searchPairUseCase = SearchPairUseCase(userRepository)
+    private val matchPartnersUseCase = MatchPartnersUseCase(userRepository)
+    private val searchPairUseCase = SearchPairUseCase(userRepository, matchPartnersUseCase)
     private val changePartnerUseCase = ChangePartnerUseCase(userRepository)
     private val getPartnerInfoUseCase = GetPartnerInfoUseCase(userRepository, notesRepository)
     private val getStatisticsUseCase = GetStatisticsUseCase(userRepository, notesRepository)
