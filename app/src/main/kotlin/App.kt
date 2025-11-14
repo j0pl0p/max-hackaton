@@ -18,6 +18,7 @@ import ru.max.botapi.model.Message
 import ru.max.botapi.queries.DeleteMessageQuery
 import ru.max.botapi.queries.EditMessageQuery
 import ru.max.botapi.queries.PostAdminsQuery
+import ru.max.bot.builders.attachments.InlineKeyboardBuilder
 
 
 import kotlin.jvm.Throws
