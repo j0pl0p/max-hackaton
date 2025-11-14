@@ -4,6 +4,8 @@ import org.white_powerbank.bot.keyboards.Keyboards
 import org.white_powerbank.bot.messages.BotTexts
 import org.white_powerbank.models.BotState
 import org.white_powerbank.usecases.StartQuitUseCase
+import org.white_powerbank.usecases.RelapseUseCase
+import org.white_powerbank.repositories.UsersRepository
 import ru.max.botapi.model.Update
 import ru.max.botapi.model.MessageCreatedUpdate
 import ru.max.botapi.model.MessageCallbackUpdate
@@ -13,7 +15,9 @@ import ru.max.botapi.model.MessageCallbackUpdate
  */
 class MainMenuHandler(
     private val stateManager: org.white_powerbank.bot.fsm.UserStateManager,
-    private val startQuitUseCase: StartQuitUseCase
+    private val startQuitUseCase: StartQuitUseCase,
+    private val relapseUseCase: RelapseUseCase,
+    private val usersRepository: UsersRepository
 ) : Handler {
     
     override suspend fun canHandle(update: Update, currentState: BotState): Boolean {
@@ -35,20 +39,42 @@ class MainMenuHandler(
         val payload = UpdateUtils.getPayload(update)
         val userId = UpdateUtils.getUserId(update) ?: return HandlerResult("Ошибка: не удалось определить пользователя")
         
+        // Получаем пользователя для проверки состояния
+        val user = usersRepository.getUserByMaxId(userId)
+        
         // Обработка кнопок главного меню
         return when (payload) {
             "main_quit" -> {
-                val started = startQuitUseCase.execute(userId)
-                HandlerResult(
-                    text = if (started) "Начинаем процесс отказа от курения..." else "Не удалось начать процесс отказа.",
-                    keyboard = Keyboards.backToMenu(),
-                    newState = BotState.QUIT_START
-                )
+                if (user?.isQuitting == true) {
+                    HandlerResult(
+                        text = "Вы уже в процессе отказа от курения!",
+                        keyboard = Keyboards.mainMenu(),
+                        newState = BotState.MAIN_MENU
+                    )
+                } else {
+                    val started = startQuitUseCase.execute(userId)
+                    HandlerResult(
+                        text = if (started) "Начинаем процесс отказа от курения..." else "Не удалось начать процесс отказа.",
+                        keyboard = Keyboards.backToMenu(),
+                        newState = BotState.QUIT_START
+                    )
+                }
             }
             "main_partner" -> HandlerResult("", null, BotState.PARTNER_MENU)
             "main_diary" -> HandlerResult("", null, BotState.DIARY_CALENDAR)
             "main_statistics" -> HandlerResult("", null, BotState.STATISTICS)
-            "main_relapse" -> HandlerResult("", null, BotState.RELAPSE)
+            "main_relapse" -> {
+                if (user?.isQuitting == false) {
+                    HandlerResult(
+                        text = "Вы не находитесь в процессе отказа от курения.",
+                        keyboard = Keyboards.mainMenu(),
+                        newState = BotState.MAIN_MENU
+                    )
+                } else {
+                    relapseUseCase.execute(userId)
+                    HandlerResult("", null, BotState.RELAPSE)
+                }
+            }
             else -> HandlerResult(
                 text = BotTexts.WELCOME_MESSAGE,
                 keyboard = Keyboards.mainMenu(),

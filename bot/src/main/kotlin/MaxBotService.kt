@@ -24,7 +24,8 @@ class MaxBotService(
     private val stateManager: UserStateManager,
     private val userRepository: UsersRepository,
     private val notesRepository: NotesRepository,
-    private val usersAwardsRepository: UsersAwardsRepository
+    private val usersAwardsRepository: UsersAwardsRepository,
+    private val relapseUseCase: RelapseUseCase
 ) : LongPollingBot(token) {
 
     private val matchPartnersUseCase = MatchPartnersUseCase(userRepository)
@@ -40,7 +41,7 @@ class MaxBotService(
 
     private val router: MessageRouter by lazy {
         val handlers = listOf<Handler>(
-            MainMenuHandler(stateManager, startQuitUseCase),
+            MainMenuHandler(stateManager, startQuitUseCase, relapseUseCase, userRepository),
             PartnerHandler(stateManager, userRepository, searchPairUseCase, changePartnerUseCase, getPartnerInfoUseCase),
             StatisticsHandler(stateManager, getStatisticsUseCase, getAchievementsUseCase),
             DiaryHandler(stateManager, userRepository, saveNoteUseCase, diaryEntryDataUseCase),
