@@ -9,5 +9,11 @@ enum class BotState(val id: Long) {
     DIARY_ENTER_PULL_LEVEL(6),
     DIARY_ENTER_NOTE(7),
     RELAPSE(8),
-    QUIT_START(9)
+    QUIT_START(9);
+
+    companion object {
+        fun fromId(id: Long): BotState {
+            return entries.firstOrNull { it.id == id } ?: MAIN_MENU
+        }
+    }
 }

@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgress_streetimpact
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: school_reviews
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_streetimpact
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: user@user.com   # логин для входа в pgAdmin
+      PGADMIN_DEFAULT_PASSWORD: 123          # пароль для входа
+    ports:
+      - "5050:80"   # pgAdmin будет доступен на http://localhost:5050
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

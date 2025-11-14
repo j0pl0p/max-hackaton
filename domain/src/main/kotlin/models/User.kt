@@ -1,6 +1,7 @@
 package org.white_powerbank.models
 
-import java.util.Date
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class User(
     var id: Long,
@@ -8,8 +9,8 @@ data class User(
     var state: BotState,
     var partnerId: Long?,
     var partnerSearchStatus: PartnerSearchStatus,
-    var lastActivityDate: Long,
-    var isQuiting: Boolean,
-    var lastStart: Date?,
+    var lastActivity: LocalDateTime,
+    var isQuitting: Boolean,
+    var lastStart: LocalDate?,
     var averageMonthlyExpenses: Long,
 )

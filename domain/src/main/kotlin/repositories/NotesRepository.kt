@@ -7,11 +7,11 @@ interface NotesRepository {
 
     fun getNotesByUserId(userId: Long): List<Note>
 
-    fun getNoteById(noteId: Long): Note
+    fun getNoteById(noteId: Long): Note?
 
-    fun getNoteByUserIdAndDate(userId: Long, date: Date): Note
+    fun getNoteByUserIdAndDate(userId: Long, date: Date): Note?
 
-    fun addNote(note: Note)
+    fun addNote(note: Note): Long
 
     fun updateNote(note: Note)
 
@@ -19,6 +19,5 @@ interface NotesRepository {
 
     // [date_from, date_to]
     fun getNotesByUserIdAndDates(userId: Long, dateFrom: Date, dateTo: Date): List<Note>
-
 
 }

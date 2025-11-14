@@ -7,5 +7,6 @@ data class Note (
     var userId: Long,
     var date: Date,
     var pullLevel: Int,
+    var failed: Boolean,
     var body: String
 )
