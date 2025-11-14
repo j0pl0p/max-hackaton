@@ -2,10 +2,9 @@ package org.white_powerbank.bot.handlers
 
 import org.white_powerbank.bot.keyboards.Keyboards
 import org.white_powerbank.bot.messages.BotTexts
-import org.white_powerbank.models.BotStates
+import org.white_powerbank.models.BotState
 import ru.max.botapi.model.MessageCreatedUpdate
 import java.time.LocalDate
-import java.time.YearMonth
 
 /**
  * Обработчик сценария "Дневник"
@@ -22,17 +21,17 @@ class DiaryHandler(
         var pullLevel: Int? = null
     )
     
-    override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotStates): Boolean {
+    override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
         val payload = MessageUtils.getPayload(update)
         return currentState in listOf(
-            BotStates.DIARY_CALENDAR,
-            BotStates.DIARY_SELECT_DATE,
-            BotStates.DIARY_ENTER_PULL_LEVEL,
-            BotStates.DIARY_ENTER_NOTE
+            BotState.DIARY_CALENDAR,
+            BotState.DIARY_SELECT_DATE,
+            BotState.DIARY_ENTER_PULL_LEVEL,
+            BotState.DIARY_ENTER_NOTE
         ) || payload?.startsWith("diary_") == true
     }
     
-    override suspend fun handle(update: MessageCreatedUpdate, currentState: BotStates): HandlerResult {
+    override suspend fun handle(update: MessageCreatedUpdate, currentState: BotState): HandlerResult {
         val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
         val payload = MessageUtils.getPayload(update)
         val text = update.message?.body?.text
@@ -40,20 +39,20 @@ class DiaryHandler(
         val entryData = diaryData.getOrPut(userId) { DiaryEntryData() }
         
         when (currentState) {
-            BotStates.DIARY_CALENDAR -> {
+            BotState.DIARY_CALENDAR -> {
                 return handleCalendar(update, payload)
             }
-            BotStates.DIARY_ENTER_PULL_LEVEL -> {
+            BotState.DIARY_ENTER_PULL_LEVEL -> {
                 return handlePullLevel(update, payload, entryData, userId)
             }
-            BotStates.DIARY_ENTER_NOTE -> {
+            BotState.DIARY_ENTER_NOTE -> {
                 return handleNote(update, text, entryData, userId)
             }
             else -> {
                 return HandlerResult(
                     text = BotTexts.DIARY_CALENDAR_TITLE,
                     keyboard = Keyboards.diaryCalendar(),
-                    newState = BotStates.DIARY_CALENDAR
+                    newState = BotState.DIARY_CALENDAR
                 )
             }
         }
@@ -79,7 +78,7 @@ class DiaryHandler(
                     return HandlerResult(
                         text = BotTexts.DIARY_ENTER_PULL_LEVEL,
                         keyboard = Keyboards.diaryPullLevel(),
-                        newState = BotStates.DIARY_ENTER_PULL_LEVEL
+                        newState = BotState.DIARY_ENTER_PULL_LEVEL
                     )
                 }
             }
@@ -92,7 +91,7 @@ class DiaryHandler(
                     return HandlerResult(
                         text = BotTexts.DIARY_CALENDAR_TITLE,
                         keyboard = Keyboards.diaryCalendar(year, month),
-                        newState = BotStates.DIARY_CALENDAR
+                        newState = BotState.DIARY_CALENDAR
                     )
                 }
             }
@@ -101,7 +100,7 @@ class DiaryHandler(
         return HandlerResult(
             text = BotTexts.DIARY_CALENDAR_TITLE,
             keyboard = Keyboards.diaryCalendar(),
-            newState = BotStates.DIARY_CALENDAR
+            newState = BotState.DIARY_CALENDAR
         )
     }
     
@@ -119,7 +118,7 @@ class DiaryHandler(
                 return HandlerResult(
                     text = BotTexts.DIARY_ENTER_NOTE,
                     keyboard = Keyboards.backToMenu(),
-                    newState = BotStates.DIARY_ENTER_NOTE
+                    newState = BotState.DIARY_ENTER_NOTE
                 )
             }
         }
@@ -127,7 +126,7 @@ class DiaryHandler(
         return HandlerResult(
             text = BotTexts.DIARY_ENTER_PULL_LEVEL,
             keyboard = Keyboards.diaryPullLevel(),
-            newState = BotStates.DIARY_ENTER_PULL_LEVEL
+            newState = BotState.DIARY_ENTER_PULL_LEVEL
         )
     }
     
@@ -151,14 +150,14 @@ class DiaryHandler(
             return HandlerResult(
                 text = BotTexts.DIARY_SAVED,
                 keyboard = Keyboards.backToMenu(),
-                newState = BotStates.MAIN_MENU
+                newState = BotState.MAIN_MENU
             )
         }
         
         return HandlerResult(
             text = BotTexts.DIARY_ENTER_NOTE,
             keyboard = Keyboards.backToMenu(),
-            newState = BotStates.DIARY_ENTER_NOTE
+            newState = BotState.DIARY_ENTER_NOTE
         )
     }
 }

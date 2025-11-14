@@ -2,7 +2,7 @@ package org.white_powerbank.bot.handlers
 
 import org.white_powerbank.bot.keyboards.Keyboards
 import org.white_powerbank.bot.messages.BotTexts
-import org.white_powerbank.models.BotStates
+import org.white_powerbank.models.BotState
 import org.white_powerbank.domain.repositories.UserReposytory
 import ru.max.botapi.model.MessageCreatedUpdate
 
@@ -14,13 +14,13 @@ class PartnerHandler(
     private val userReposytory: UserReposytory
 ) : Handler {
     
-    override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotStates): Boolean {
+    override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
         val payload = MessageUtils.getPayload(update)
-        return currentState == BotStates.PARTNER_MENU ||
+        return currentState == BotState.PARTNER_MENU ||
                payload?.startsWith("partner_") == true
     }
     
-    override suspend fun handle(update: MessageCreatedUpdate, currentState: BotStates): HandlerResult {
+    override suspend fun handle(update: MessageCreatedUpdate, currentState: BotState): HandlerResult {
         val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
         val user = userReposytory.getUser(userId)
         val payload = MessageUtils.getPayload(update)
@@ -32,7 +32,7 @@ class PartnerHandler(
                 return HandlerResult(
                     text = "Ищем напарника...",
                     keyboard = Keyboards.partnerNoPartner(),
-                    newState = BotStates.PARTNER_MENU
+                    newState = BotState.PARTNER_MENU
                 )
             }
             "partner_change" -> {
@@ -40,7 +40,7 @@ class PartnerHandler(
                 return HandlerResult(
                     text = "Смена напарника...",
                     keyboard = Keyboards.partnerNoPartner(),
-                    newState = BotStates.PARTNER_MENU
+                    newState = BotState.PARTNER_MENU
                 )
             }
         }
@@ -57,13 +57,13 @@ class PartnerHandler(
             return HandlerResult(
                 text = BotTexts.getPartnerInfo(partnerName, partnerDays),
                 keyboard = Keyboards.partnerWithPartner(),
-                newState = BotStates.PARTNER_MENU
+                newState = BotState.PARTNER_MENU
             )
         } else {
             return HandlerResult(
                 text = BotTexts.NO_PARTNER_MESSAGE,
                 keyboard = Keyboards.partnerNoPartner(),
-                newState = BotStates.PARTNER_MENU
+                newState = BotState.PARTNER_MENU
             )
         }
     }

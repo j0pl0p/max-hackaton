@@ -2,7 +2,7 @@ package org.white_powerbank.bot.handlers
 
 import org.white_powerbank.bot.keyboards.Keyboards
 import org.white_powerbank.bot.messages.BotTexts
-import org.white_powerbank.models.BotStates
+import org.white_powerbank.models.BotState
 import ru.max.botapi.model.MessageCreatedUpdate
 
 /**
@@ -12,11 +12,11 @@ class StatisticsHandler(
     private val stateManager: org.white_powerbank.bot.fsm.UserStateManager
 ) : Handler {
     
-    override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotStates): Boolean {
-        return currentState == BotStates.STATISTICS
+    override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
+        return currentState == BotState.STATISTICS
     }
     
-    override suspend fun handle(update: MessageCreatedUpdate, currentState: BotStates): HandlerResult {
+    override suspend fun handle(update: MessageCreatedUpdate, currentState: BotState): HandlerResult {
         val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
         
         // TODO: вызвать UseCase для получения статистики
@@ -44,7 +44,7 @@ class StatisticsHandler(
         return HandlerResult(
             text = statisticsText,
             keyboard = Keyboards.statistics(),
-            newState = BotStates.STATISTICS
+            newState = BotState.STATISTICS
         )
     }
 }

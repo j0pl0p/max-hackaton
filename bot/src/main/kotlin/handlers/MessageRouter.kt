@@ -1,8 +1,10 @@
 package org.white_powerbank.bot.handlers
 
+import handlers.UserNotFoundException
 import org.white_powerbank.bot.fsm.UserStateManager
-import org.white_powerbank.domain.repositories.UserRepository
-import org.white_powerbank.models.BotStates
+import org.white_powerbank.repositories.UsersRepository
+import org.white_powerbank.models.BotState
+import org.white_powerbank.models.PartnerSearchStatus
 import ru.max.botapi.model.MessageCreatedUpdate
 
 /**
@@ -11,7 +13,7 @@ import ru.max.botapi.model.MessageCreatedUpdate
  */
 class MessageRouter(
     private val stateManager: UserStateManager,
-    private val userRepository: UserRepository,
+    private val usersRepository: UsersRepository,
     private val handlers: List<Handler>
 ) {
     /**
@@ -21,20 +23,24 @@ class MessageRouter(
         val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
         
         // Получаем или создаем пользователя
-        val user = UserRepository.getUser(userId)
+        val user = usersRepository.getUserByMaxId(userId)
         if (user == null) {
             val newUser = org.white_powerbank.models.User(
                 id = 0,
-                max_id = userId,
-                state = BotStates.MAIN_MENU,
-                partner_id = -1,
-                last_activity_date = System.currentTimeMillis(),
-                is_quiting = false
+                maxId = userId,
+                state = BotState.MAIN_MENU,
+                partnerId = null,
+                partnerSearchStatus = PartnerSearchStatus.INACTIVE,
+                lastActivityDate = System.currentTimeMillis(),
+                isQuiting = false,
+                lastStart = null,
+                averageMonthlyExpenses = 0L
             )
-            UserRepository.saveUser(newUser)
+            usersRepository.addUser(newUser)
         }
         
-        var currentState = stateManager.getState(userId)
+        var currentState = stateManager.getState(userId)?:
+                                                throw UserNotFoundException("User not found: can't get state")
         var lastResult: HandlerResult? = null
         
         // Обрабатываем сообщение, возможно несколько раз, если состояние изменилось
@@ -84,14 +90,14 @@ class MessageRouter(
             return HandlerResult(
                 text = "Неизвестная команда. Возвращаюсь в главное меню.",
                 keyboard = org.white_powerbank.bot.keyboards.Keyboards.mainMenu(),
-                newState = BotStates.MAIN_MENU
+                newState = BotState.MAIN_MENU
             )
         }
         
         return lastResult ?: HandlerResult(
             text = "Неизвестная команда. Возвращаюсь в главное меню.",
             keyboard = org.white_powerbank.bot.keyboards.Keyboards.mainMenu(),
-            newState = BotStates.MAIN_MENU
+            newState = BotState.MAIN_MENU
         )
     }
 }

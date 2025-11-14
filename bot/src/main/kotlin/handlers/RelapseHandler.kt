@@ -2,7 +2,7 @@ package org.white_powerbank.bot.handlers
 
 import org.white_powerbank.bot.keyboards.Keyboards
 import org.white_powerbank.bot.messages.BotTexts
-import org.white_powerbank.models.BotStates
+import org.white_powerbank.models.BotState
 import ru.max.botapi.model.MessageCreatedUpdate
 
 /**
@@ -12,13 +12,13 @@ class RelapseHandler(
     private val stateManager: org.white_powerbank.bot.fsm.UserStateManager
 ) : Handler {
     
-    override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotStates): Boolean {
+    override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
         val payload = MessageUtils.getPayload(update)
-        return currentState == BotStates.RELAPSE ||
+        return currentState == BotState.RELAPSE ||
                payload?.startsWith("relapse_") == true
     }
     
-    override suspend fun handle(update: MessageCreatedUpdate, currentState: BotStates): HandlerResult {
+    override suspend fun handle(update: MessageCreatedUpdate, currentState: BotState): HandlerResult {
         val payload = MessageUtils.getPayload(update)
         
         when (payload) {
@@ -27,7 +27,7 @@ class RelapseHandler(
                 return HandlerResult(
                     text = "",
                     keyboard = null,
-                    newState = BotStates.DIARY_CALENDAR
+                    newState = BotState.DIARY_CALENDAR
                 )
             }
             "relapse_restart" -> {
@@ -35,7 +35,7 @@ class RelapseHandler(
                 return HandlerResult(
                     text = "Начинаем заново. Ты справишься!",
                     keyboard = Keyboards.mainMenu(),
-                    newState = BotStates.MAIN_MENU
+                    newState = BotState.MAIN_MENU
                 )
             }
         }
@@ -44,7 +44,7 @@ class RelapseHandler(
         return HandlerResult(
             text = BotTexts.RELAPSE_MESSAGE,
             keyboard = Keyboards.relapse(),
-            newState = BotStates.RELAPSE
+            newState = BotState.RELAPSE
         )
     }
 }

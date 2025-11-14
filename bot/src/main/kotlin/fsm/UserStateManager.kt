@@ -1,8 +1,7 @@
 package org.white_powerbank.bot.fsm
 
-import org.white_powerbank.models.BotStates
-import org.white_powerbank.domain.repositories.UserReposytory
-import org.white_powerbank.models.User
+import org.white_powerbank.models.BotState
+import org.white_powerbank.repositories.UsersRepository
 
 /**
  * Управление состояниями пользователя
@@ -10,22 +9,22 @@ import org.white_powerbank.models.User
  */
 
 class UserStateManager (
-    private val userRepository: UserRepository
+    private val userRepository: UsersRepository
 ) {
 
     /**
      * Получить текущее состояние пользователя
      */
-    fun getState(userId: Long): BotStates {
-        val user = userRepository.getUser(userId)
+    fun getState(userMaxId: Long): BotState? {
+        val user = userRepository.getUserByMaxId(userMaxId)
         return user?.state
     }
 
     /**
      * Установить новое состояние пользователя
      */
-    fun setState(userId: Long, state: BotStates) {
-        val user = userRepository.getUser(userId)
+    fun setState(userMaxId: Long, state: BotState) {
+        val user = userRepository.getUserById(userMaxId)
         if (user != null) {
             user.state = state
             userRepository.updateUser(user)
