@@ -3,23 +3,23 @@ package org.white_powerbank.bot.handlers
 import org.white_powerbank.bot.keyboards.Keyboards
 import org.white_powerbank.bot.messages.BotTexts
 import org.white_powerbank.models.BotState
+import org.white_powerbank.repositories.UsersRepository
+import org.white_powerbank.usecases.DiaryEntryDataUseCase
+import org.white_powerbank.usecases.SaveNoteUseCase
 import ru.max.botapi.model.MessageCreatedUpdate
 import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
 
 /**
  * Обработчик сценария "Дневник"
  */
 class DiaryHandler(
-    private val stateManager: org.white_powerbank.bot.fsm.UserStateManager
+    private val stateManager: org.white_powerbank.bot.fsm.UserStateManager,
+    private val usersRepository: UsersRepository,
+    private val saveNoteUseCase: SaveNoteUseCase,
+    private val diaryEntryDataUseCase: DiaryEntryDataUseCase
 ) : Handler {
-    
-    // Временное хранилище для данных дневника (в реальности должно быть в БД или кэше)
-    private val diaryData = mutableMapOf<Long, DiaryEntryData>()
-    
-    data class DiaryEntryData(
-        var selectedDate: LocalDate? = null,
-        var pullLevel: Int? = null
-    )
     
     override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
         val payload = MessageUtils.getPayload(update)
@@ -36,14 +36,15 @@ class DiaryHandler(
         val payload = MessageUtils.getPayload(update)
         val text = update.message?.body?.text
         
-        val entryData = diaryData.getOrPut(userId) { DiaryEntryData() }
+        // Получаем временные данные из репозитория
+        val entryData = diaryEntryDataUseCase.getTemporaryData(userId)
         
         when (currentState) {
             BotState.DIARY_CALENDAR -> {
-                return handleCalendar(update, payload)
+                return handleCalendar(update, payload, userId)
             }
             BotState.DIARY_ENTER_PULL_LEVEL -> {
-                return handlePullLevel(update, payload, entryData, userId)
+                return handlePullLevel(update, payload, userId)
             }
             BotState.DIARY_ENTER_NOTE -> {
                 return handleNote(update, text, entryData, userId)
@@ -60,7 +61,8 @@ class DiaryHandler(
     
     private suspend fun handleCalendar(
         update: MessageCreatedUpdate,
-        payload: String?
+        payload: String?,
+        userId: Long
     ): HandlerResult {
         when {
             payload?.startsWith("diary_calendar_date:") == true -> {
@@ -72,8 +74,8 @@ class DiaryHandler(
                         dateParts[1].toInt(),
                         dateParts[2].toInt()
                     )
-                    val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка")
-                    diaryData.getOrPut(userId) { DiaryEntryData() }.selectedDate = date
+                    // Сохраняем выбранную дату через use case
+                    diaryEntryDataUseCase.saveTemporaryData(userId, date, null)
                     
                     return HandlerResult(
                         text = BotTexts.DIARY_ENTER_PULL_LEVEL,
@@ -107,14 +109,17 @@ class DiaryHandler(
     private suspend fun handlePullLevel(
         update: MessageCreatedUpdate,
         payload: String?,
-        entryData: DiaryEntryData,
         userId: Long
     ): HandlerResult {
         if (payload?.startsWith("diary_pull_level:") == true) {
             val levelStr = payload.removePrefix("diary_pull_level:")
             val level = levelStr.toIntOrNull()
             if (level != null && level in 0..10) {
-                entryData.pullLevel = level
+                // Получаем текущие временные данные
+                val entryData = diaryEntryDataUseCase.getTemporaryData(userId)
+                // Сохраняем уровень тяги через use case
+                diaryEntryDataUseCase.saveTemporaryData(userId, entryData?.selectedDate, level)
+                
                 return HandlerResult(
                     text = BotTexts.DIARY_ENTER_NOTE,
                     keyboard = Keyboards.backToMenu(),
@@ -133,25 +138,56 @@ class DiaryHandler(
     private suspend fun handleNote(
         update: MessageCreatedUpdate,
         text: String?,
-        entryData: DiaryEntryData,
+        entryData: org.white_powerbank.usecases.DiaryEntryData?,
         userId: Long
     ): HandlerResult {
-        if (text != null && text.isNotBlank() && !text.startsWith("/") && !text.startsWith("diary_")) {
-            val date = entryData.selectedDate ?: LocalDate.now()
-            val pullLevel = entryData.pullLevel ?: 0
-            
-            // TODO: вызвать UseCase для сохранения записи в дневник
-            // val note = Note(0, userId, date, false, pullLevel, text)
-            // saveNoteUseCase.execute(note)
-            
-            // Очищаем временные данные
-            diaryData.remove(userId)
-            
+        val payload = MessageUtils.getPayload(update)
+        if (payload == "back_to_menu") {
+            // Удаляем временные данные через use case
+            diaryEntryDataUseCase.deleteTemporaryData(userId)
             return HandlerResult(
-                text = BotTexts.DIARY_SAVED,
-                keyboard = Keyboards.backToMenu(),
+                text = "",
+                keyboard = null,
                 newState = BotState.MAIN_MENU
             )
+        }
+        
+        if (text != null && text.isNotBlank() && !text.startsWith("/") && payload == null) {
+            val date = entryData?.selectedDate ?: LocalDate.now()
+            val pullLevel = entryData?.pullLevel ?: 0
+            
+            // Получаем внутренний ID пользователя
+            val user = usersRepository.getUserByMaxId(userId)
+            val internalUserId = user?.id ?: userId
+            
+            // Конвертируем LocalDate в Date
+            val dateAsDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())
+            
+            // Сохраняем запись через UseCase
+            try {
+                saveNoteUseCase.execute(
+                    userId = internalUserId,
+                    date = dateAsDate,
+                    pullLevel = pullLevel,
+                    body = text,
+                    failed = false
+                )
+                
+                // Очищаем временные данные через use case
+                diaryEntryDataUseCase.deleteTemporaryData(userId)
+                
+                return HandlerResult(
+                    text = BotTexts.DIARY_SAVED,
+                    keyboard = Keyboards.backToMenu(),
+                    newState = BotState.MAIN_MENU
+                )
+            } catch (e: Exception) {
+                return HandlerResult(
+                    text = "Ошибка при сохранении записи: ${e.message}",
+                    keyboard = Keyboards.backToMenu(),
+                    newState = BotState.DIARY_ENTER_NOTE
+                )
+            }
         }
         
         return HandlerResult(

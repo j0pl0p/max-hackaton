@@ -3,23 +3,24 @@ package org.white_powerbank.bot.handlers
 import org.white_powerbank.bot.keyboards.Keyboards
 import org.white_powerbank.bot.messages.BotTexts
 import org.white_powerbank.models.BotState
+import org.white_powerbank.usecases.StartQuitUseCase
 import ru.max.botapi.model.MessageCreatedUpdate
 
 /**
  * Обработчик главного меню
  */
 class MainMenuHandler(
-    private val stateManager: org.white_powerbank.bot.fsm.UserStateManager
+    private val stateManager: org.white_powerbank.bot.fsm.UserStateManager,
+    private val startQuitUseCase: StartQuitUseCase
 ) : Handler {
     
     override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
         val text = update.message?.body?.text?.trim()?.lowercase()
         val payload = MessageUtils.getPayload(update)
         
-        // Команда /start или кнопка "Главное меню" или "В меню"
+        // Команда /start или кнопка "В меню"
         return text == "/start" || 
                text == "start" ||
-               payload == "main_menu" ||
                payload == "back_to_menu" ||
                (currentState == BotState.MAIN_MENU && payload == null && text == null)
     }
@@ -30,9 +31,10 @@ class MainMenuHandler(
         // Обработка кнопок главного меню
         when (payload) {
             "main_quit" -> {
-                // TODO: вызвать UseCase для начала процесса отказа
+                val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
+                val started = startQuitUseCase.execute(userId)
                 return HandlerResult(
-                    text = "Начинаем процесс отказа от курения...",
+                    text = if (started) "Начинаем процесс отказа от курения..." else "Не удалось начать процесс отказа.",
                     keyboard = Keyboards.backToMenu(),
                     newState = BotState.QUIT_START
                 )

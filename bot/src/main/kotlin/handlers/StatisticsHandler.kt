@@ -3,32 +3,38 @@ package org.white_powerbank.bot.handlers
 import org.white_powerbank.bot.keyboards.Keyboards
 import org.white_powerbank.bot.messages.BotTexts
 import org.white_powerbank.models.BotState
+import org.white_powerbank.usecases.GetStatisticsUseCase
+import org.white_powerbank.usecases.GetAchievementsUseCase
 import ru.max.botapi.model.MessageCreatedUpdate
 
 /**
  * Обработчик сценария "Статистика"
  */
 class StatisticsHandler(
-    private val stateManager: org.white_powerbank.bot.fsm.UserStateManager
+    private val stateManager: org.white_powerbank.bot.fsm.UserStateManager,
+    private val getStatisticsUseCase: GetStatisticsUseCase,
+    private val getAchievementsUseCase: GetAchievementsUseCase
 ) : Handler {
     
     override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
+        val payload = MessageUtils.getPayload(update)
+        if (payload == "back_to_menu") {
+            return false
+        }
         return currentState == BotState.STATISTICS
     }
     
     override suspend fun handle(update: MessageCreatedUpdate, currentState: BotState): HandlerResult {
         val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
         
-        // TODO: вызвать UseCase для получения статистики
-        // Пока используем заглушку
-        val lastDay = 28 // TODO: получить из UseCase
-        val totalDays = 14 // TODO: получить из UseCase
+        // Получаем статистику через UseCase
+        val statistics = getStatisticsUseCase.execute(userId)
         
-        // TODO: получить достижения через UseCase
-        val achievements = listOf<String>() // TODO: получить из UseCase
+        // Получаем достижения через UseCase
+        val achievements = getAchievementsUseCase.execute(userId)
         
         val statisticsText = buildString {
-            appendLine(BotTexts.getStatistics(lastDay, totalDays))
+            appendLine(BotTexts.getStatistics(statistics.lastSmokingDay, statistics.totalDaysWithoutSmoking))
             if (achievements.isNotEmpty()) {
                 appendLine()
                 appendLine(BotTexts.ACHIEVEMENTS_TITLE)

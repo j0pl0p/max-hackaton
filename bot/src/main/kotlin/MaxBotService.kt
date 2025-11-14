@@ -2,6 +2,10 @@ package org.white_powerbank.bot
 
 import org.white_powerbank.bot.fsm.UserStateManager
 import org.white_powerbank.bot.handlers.*
+import org.white_powerbank.repositories.UsersRepository
+import org.white_powerbank.repositories.NotesRepository
+import org.white_powerbank.repositories.UsersAwardsRepositorie
+import org.white_powerbank.usecases.*
 import ru.max.bot.longpolling.LongPollingBot
 import ru.max.bot.annotations.UpdateHandler
 import ru.max.bot.builders.NewMessageBodyBuilder
@@ -13,7 +17,6 @@ import ru.max.botapi.queries.SendMessageQuery
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import ru.max.bot.annotations.CommandHandler
 
 /**
  * Основной сервис бота, интегрирующийся с MAX SDK
@@ -21,16 +24,39 @@ import ru.max.bot.annotations.CommandHandler
 class MaxBotService(
     token: String,
     private val stateManager: UserStateManager,
-    private val userRepository: UserRepository
+    private val userRepository: UsersRepository,
+    private val notesRepository: NotesRepository,
+    private val usersAwardsRepository: UsersAwardsRepositorie
 ) : LongPollingBot(token) {
+
+    // Создаем use cases
+    private val searchPairUseCase = SearchPairUseCase(userRepository)
+    private val changePartnerUseCase = ChangePartnerUseCase(userRepository)
+    private val getPartnerInfoUseCase = GetPartnerInfoUseCase(userRepository, notesRepository)
+    private val getStatisticsUseCase = GetStatisticsUseCase(userRepository, notesRepository)
+    private val getAchievementsUseCase = GetAchievementsUseCase(usersAwardsRepository, userRepository)
+    private val startQuitUseCase = StartQuitUseCase(userRepository)
+    private val saveNoteUseCase = SaveNoteUseCase(notesRepository)
+    private val restartQuitUseCase = RestartQuitUseCase(userRepository)
+    private val diaryEntryDataUseCase = DiaryEntryDataUseCase(notesRepository, userRepository)
 
     private val router: MessageRouter by lazy {
         val handlers = listOf<Handler>(
-            MainMenuHandler(stateManager),
-            PartnerHandler(stateManager, userRepository),
-            StatisticsHandler(stateManager),
-            DiaryHandler(stateManager),
-            RelapseHandler(stateManager)
+            MainMenuHandler(stateManager, startQuitUseCase),
+            PartnerHandler(
+                stateManager,
+                userRepository,
+                searchPairUseCase,
+                changePartnerUseCase,
+                getPartnerInfoUseCase
+            ),
+            StatisticsHandler(
+                stateManager,
+                getStatisticsUseCase,
+                getAchievementsUseCase
+            ),
+            DiaryHandler(stateManager, userRepository, saveNoteUseCase, diaryEntryDataUseCase),
+            RelapseHandler(stateManager, restartQuitUseCase)
         )
         MessageRouter(stateManager, userRepository, handlers)
     }

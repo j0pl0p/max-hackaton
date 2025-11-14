@@ -24,12 +24,13 @@ class UserStateManager (
      * Установить новое состояние пользователя
      */
     fun setState(userMaxId: Long, state: BotState) {
-        val user = userRepository.getUserById(userMaxId)
+        val user = userRepository.getUserByMaxId(userMaxId)
         if (user != null) {
             user.state = state
             userRepository.updateUser(user)
         }
     }
 }
+
 
 

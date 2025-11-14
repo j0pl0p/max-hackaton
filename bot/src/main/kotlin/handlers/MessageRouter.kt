@@ -1,10 +1,10 @@
 package org.white_powerbank.bot.handlers
 
-import handlers.UserNotFoundException
 import org.white_powerbank.bot.fsm.UserStateManager
 import org.white_powerbank.repositories.UsersRepository
 import org.white_powerbank.models.BotState
 import org.white_powerbank.models.PartnerSearchStatus
+import org.white_powerbank.models.User
 import ru.max.botapi.model.MessageCreatedUpdate
 
 /**
@@ -23,9 +23,9 @@ class MessageRouter(
         val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
         
         // Получаем или создаем пользователя
-        val user = usersRepository.getUserByMaxId(userId)
+        var user = usersRepository.getUserByMaxId(userId)
         if (user == null) {
-            val newUser = org.white_powerbank.models.User(
+            val newUser = User(
                 id = 0,
                 maxId = userId,
                 state = BotState.MAIN_MENU,
@@ -37,10 +37,10 @@ class MessageRouter(
                 averageMonthlyExpenses = 0L
             )
             usersRepository.addUser(newUser)
+            user = usersRepository.getUserByMaxId(userId)
         }
         
-        var currentState = stateManager.getState(userId)?:
-                                                throw UserNotFoundException("User not found: can't get state")
+        var currentState = stateManager.getState(userId) ?: BotState.MAIN_MENU
         var lastResult: HandlerResult? = null
         
         // Обрабатываем сообщение, возможно несколько раз, если состояние изменилось
