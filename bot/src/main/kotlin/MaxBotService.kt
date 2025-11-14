@@ -2,6 +2,7 @@ package org.white_powerbank.bot
 
 import org.white_powerbank.bot.fsm.UserStateManager
 import org.white_powerbank.bot.handlers.*
+import org.white_powerbank.repositories.UsersRepository
 import ru.max.bot.longpolling.LongPollingBot
 import ru.max.bot.annotations.UpdateHandler
 import ru.max.bot.builders.NewMessageBodyBuilder
@@ -21,7 +22,7 @@ import ru.max.bot.annotations.CommandHandler
 class MaxBotService(
     token: String,
     private val stateManager: UserStateManager,
-    private val userRepository: UserRepository
+    private val userRepository: UsersRepository
 ) : LongPollingBot(token) {
 
     private val router: MessageRouter by lazy {

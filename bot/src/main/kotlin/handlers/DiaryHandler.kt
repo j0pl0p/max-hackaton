@@ -136,12 +136,22 @@ class DiaryHandler(
         entryData: DiaryEntryData,
         userId: Long
     ): HandlerResult {
-        if (text != null && text.isNotBlank() && !text.startsWith("/") && !text.startsWith("diary_")) {
+        val payload = MessageUtils.getPayload(update)
+        if (payload == "back_to_menu") {
+            diaryData.remove(userId)
+            return HandlerResult(
+                text = "",
+                keyboard = null,
+                newState = BotState.MAIN_MENU
+            )
+        }
+        
+        if (text != null && text.isNotBlank() && !text.startsWith("/") && payload == null) {
             val date = entryData.selectedDate ?: LocalDate.now()
             val pullLevel = entryData.pullLevel ?: 0
             
             // TODO: вызвать UseCase для сохранения записи в дневник
-            // val note = Note(0, userId, date, false, pullLevel, text)
+            // val note = Note(0, userId, java.util.Date.from(date.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()), false, pullLevel, text)
             // saveNoteUseCase.execute(note)
             
             // Очищаем временные данные
