@@ -4,7 +4,7 @@ import org.white_powerbank.bot.fsm.UserStateManager
 import org.white_powerbank.bot.handlers.*
 import org.white_powerbank.repositories.UsersRepository
 import org.white_powerbank.repositories.NotesRepository
-import org.white_powerbank.repositories.UsersAwardsRepositorie
+import org.white_powerbank.repositories.UsersAwardsRepository
 import org.white_powerbank.usecases.*
 import ru.max.bot.longpolling.LongPollingBot
 import ru.max.bot.annotations.UpdateHandler
@@ -26,13 +26,13 @@ class MaxBotService(
     private val stateManager: UserStateManager,
     private val userRepository: UsersRepository,
     private val notesRepository: NotesRepository,
-    private val usersAwardsRepository: UsersAwardsRepositorie
+    private val usersAwardsRepository: UsersAwardsRepository
 ) : LongPollingBot(token) {
 
     // Создаем use cases
     private val matchPartnersUseCase = MatchPartnersUseCase(userRepository)
     private val searchPairUseCase = SearchPairUseCase(userRepository, matchPartnersUseCase)
-    private val changePartnerUseCase = ChangePartnerUseCase(userRepository)
+    private val changePartnerUseCase = ChangePartnerUseCase(userRepository, matchPartnersUseCase)
     private val getPartnerInfoUseCase = GetPartnerInfoUseCase(userRepository, notesRepository)
     private val getStatisticsUseCase = GetStatisticsUseCase(userRepository, notesRepository)
     private val getAchievementsUseCase = GetAchievementsUseCase(usersAwardsRepository, userRepository)

@@ -18,9 +18,9 @@ class RestartQuitUseCase(
         val user = usersRepository.getUserByMaxId(userMaxId) ?: return false
         
         // Обновляем дату начала заново
-        user.lastStart = Date()
-        user.lastActivityDate = System.currentTimeMillis()
-        user.isQuiting = true // Убеждаемся, что флаг установлен
+        user.lastStart = java.time.LocalDate.now()
+        user.lastActivity = java.time.LocalDateTime.now()
+        user.isQuitting = true // Убеждаемся, что флаг установлен
         
         usersRepository.updateUser(user)
         

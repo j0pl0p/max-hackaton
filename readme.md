@@ -1,7 +1,69 @@
+# StreetImpact Bot
 
-utils — утилиты, общие вещи
-domain — чистая бизнес-логика
-data — работа с БД, мапперы, репозитории
-bot — слой интеграции с max-bot-sdk-java
-app — точка запуска, DI, конфиг, wiring
+Бот для помощи в отказе от курения с системой напарников и дневником.
 
+## Архитектура
+
+- **utils** — утилиты, общие вещи
+- **domain** — чистая бизнес-логика
+- **data** — работа с БД, мапперы, репозитории
+- **bot** — слой интеграции с max-bot-sdk-java
+- **app** — точка запуска, DI, конфиг, wiring
+
+## Запуск
+
+### 1. Запуск базы данных
+
+```bash
+docker-compose up -d
+```
+
+### 2. Настройка переменных окружения
+
+Создайте файл `.env` или установите переменные:
+
+```bash
+export BOT_TOKEN="your_max_bot_token"
+export DB_URL="jdbc:postgresql://localhost:5432/bot"
+export DB_USER="user"
+export DB_PASSWORD="123"
+```
+
+### 3. Запуск приложения
+
+```bash
+# Используя скрипт
+./run.sh
+
+# Или напрямую через Gradle
+./gradlew :app:run
+```
+
+## Конфигурация
+
+Конфигурация находится в `app/src/main/resources/application.conf`.
+Переменные окружения имеют приоритет над файлом конфигурации.
+
+## База данных
+
+- PostgreSQL доступна на `localhost:5432`
+- pgAdmin доступен на `http://localhost:5050`
+  - Email: `user@user.com`
+  - Password: `123`
+
+## Функциональность
+
+- Главное меню с навигацией
+- Поиск и управление напарниками
+- Дневник с календарем и записями
+- Статистика и достижения
+- Обработка срывов и перезапуск
+
+## Технологии
+
+- Kotlin + Coroutines
+- MAX Bot SDK
+- Koin DI
+- Exposed ORM
+- PostgreSQL
+- Docker

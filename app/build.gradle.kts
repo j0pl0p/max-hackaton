@@ -1,18 +1,43 @@
 plugins {
-    // Apply the shared build logic from a convention plugin.
-    // The shared code is located in `buildSrc/src/main/kotlin/kotlin-jvm.gradle.kts`.
     id("buildsrc.convention.kotlin-jvm")
-
-    // Apply the Application plugin to add support for building an executable JVM application.
     application
 }
 
+group = "org.white_powerbank"
+version = "unspecified"
+
 dependencies {
+    implementation(project(":domain"))
+    implementation(project(":data"))
+    implementation(project(":bot"))
+    implementation(project(":utils"))
+    
+    // MAX Bot SDK
     implementation("com.github.error404egor:max-bot-sdk-java:081fec8fd2")
+    
+    // Koin DI
+    implementation("io.insert-koin:koin-core:3.5.3")
+    
+    // Configuration
+    implementation("com.typesafe:config:1.4.2")
+    
+    // Logging
+    implementation("ch.qos.logback:logback-classic:1.4.11")
+    
+    // Coroutines
+    implementation(libs.kotlinxCoroutines)
+    
+    testImplementation(kotlin("test"))
 }
 
 application {
-    // Define the Fully Qualified Name for the application main class
-    // (Note that Kotlin compiles `App.kt` to a class with FQN `com.example.app.AppKt`.)
-    mainClass = "org.white_powerbank.app.AppKt"
+    mainClass = "org.white_powerbank.app.MainKt"
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+kotlin {
+    jvmToolchain(17)
 }

@@ -1,14 +1,14 @@
 package org.white_powerbank.usecases
 
 import org.white_powerbank.models.Award
-import org.white_powerbank.repositories.UsersAwardsRepositorie
+import org.white_powerbank.repositories.UsersAwardsRepository
 import org.white_powerbank.repositories.UsersRepository
 
 /**
  * UseCase для получения достижений пользователя
  */
 class GetAchievementsUseCase(
-    private val usersAwardsRepository: UsersAwardsRepositorie,
+    private val usersAwardsRepository: UsersAwardsRepository,
     private val usersRepository: UsersRepository
 ) {
     /**
@@ -21,7 +21,7 @@ class GetAchievementsUseCase(
         
         // Получаем достижения пользователя
         val awards = try {
-            usersAwardsRepository.getAwardsByUserId(user.id.toInt())
+            usersAwardsRepository.getAwardsByUserId(user.id)
         } catch (e: Exception) {
             emptyList<Award>()
         }

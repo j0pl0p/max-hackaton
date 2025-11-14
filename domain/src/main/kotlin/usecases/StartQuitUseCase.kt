@@ -18,9 +18,9 @@ class StartQuitUseCase(
         val user = usersRepository.getUserByMaxId(userMaxId) ?: return false
         
         // Устанавливаем флаг начала процесса отказа
-        user.isQuiting = true
-        user.lastStart = Date()
-        user.lastActivityDate = System.currentTimeMillis()
+        user.isQuitting = true
+        user.lastStart = java.time.LocalDate.now()
+        user.lastActivity = java.time.LocalDateTime.now()
         
         usersRepository.updateUser(user)
         

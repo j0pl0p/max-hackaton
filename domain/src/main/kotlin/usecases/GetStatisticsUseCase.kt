@@ -74,5 +74,10 @@ class GetStatisticsUseCase(
         val diff = date2.time - date1.time
         return (diff / (1000 * 60 * 60 * 24)).toInt().coerceAtLeast(0)
     }
+    
+    private fun calculateDaysBetween(date1: java.time.LocalDate, date2: Date): Int {
+        val localDate2 = date2.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+        return java.time.temporal.ChronoUnit.DAYS.between(date1, localDate2).toInt().coerceAtLeast(0)
+    }
 }
 

@@ -49,9 +49,8 @@ class GetPartnerInfoUseCase(
      */
     private fun calculateDaysWithoutSmoking(user: org.white_powerbank.models.User): Int {
         val lastStart = user.lastStart ?: return 0
-        val now = Date()
-        val diff = now.time - lastStart.time
-        return (diff / (1000 * 60 * 60 * 24)).toInt()
+        val now = java.time.LocalDate.now()
+        return java.time.temporal.ChronoUnit.DAYS.between(lastStart, now).toInt()
     }
     
     /**
