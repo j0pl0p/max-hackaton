@@ -7,12 +7,13 @@ import org.white_powerbank.repositories.UsersRepository
  * UseCase для поиска напарника
  */
 class SearchPairUseCase(
-    private val usersRepository: UsersRepository
+    private val usersRepository: UsersRepository,
+    private val matchPartnersUseCase: MatchPartnersUseCase
 ) {
     /**
      * Начать поиск напарника для пользователя
      * @param userMaxId ID пользователя в MAX
-     * @return true если поиск успешно начат, false если пользователь уже в поиске или имеет напарника
+     * @return true если поиск успешно начат или партнер найден, false если пользователь уже в поиске или имеет напарника
      */
     suspend fun execute(userMaxId: Long): Boolean {
         val user = usersRepository.getUserByMaxId(userMaxId) ?: return false
@@ -22,16 +23,19 @@ class SearchPairUseCase(
             return false
         }
         
+        // Если уже в поиске, пытаемся найти партнера
         if (user.partnerSearchStatus == PartnerSearchStatus.ACTIVE) {
+            matchPartnersUseCase.execute(userMaxId)
             return true
         }
         
+        // Начинаем поиск
         user.partnerSearchStatus = PartnerSearchStatus.ACTIVE
         user.partnerId = null // Убеждаемся, что напарника нет
         usersRepository.updateUser(user)
         
-        // TODO: здесь должна быть логика поиска подходящего напарника
-        // Пока просто устанавливаем статус ACTIVE
+        // Пытаемся найти подходящего партнера
+        matchPartnersUseCase.execute(userMaxId)
         
         return true
     }

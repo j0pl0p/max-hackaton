@@ -38,16 +38,67 @@ class PartnerHandler(
         when (payload) {
             "partner_search" -> {
                 val searchStarted = searchPairUseCase.execute(userId)
+                if (!searchStarted) {
+                    return HandlerResult(
+                        text = "Не удалось начать поиск. Возможно, у вас уже есть напарник.",
+                        keyboard = Keyboards.partnerNoPartner(),
+                        newState = BotState.PARTNER_MENU
+                    )
+                }
+                
+                // Проверяем, был ли найден партнер сразу
+                val updatedUser = usersRepository.getUserByMaxId(userId)
+                val hasPartner = updatedUser?.partnerId != null && updatedUser.partnerId!! > 0
+                
+                if (hasPartner) {
+                    // Партнер найден! Получаем информацию о нем
+                    val partnerInfo = getPartnerInfoUseCase.execute(userId)
+                    if (partnerInfo != null) {
+                        return HandlerResult(
+                            text = "🎉 Напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking)}",
+                            keyboard = Keyboards.partnerWithPartner(),
+                            newState = BotState.PARTNER_MENU
+                        )
+                    }
+                }
+                
                 return HandlerResult(
-                    text = if (searchStarted) "Ищем напарника..." else "Не удалось начать поиск. Возможно, у вас уже есть напарник.",
+                    text = "Ищем напарника... Мы уведомим вас, когда найдем подходящего напарника.",
                     keyboard = Keyboards.partnerNoPartner(),
                     newState = BotState.PARTNER_MENU
                 )
             }
             "partner_change" -> {
                 val changeStarted = changePartnerUseCase.execute(userId)
+                if (!changeStarted) {
+                    return HandlerResult(
+                        text = "Не удалось сменить напарника.",
+                        keyboard = Keyboards.partnerNoPartner(),
+                        newState = BotState.PARTNER_MENU
+                    )
+                }
+                
+                // После смены напарника начинаем поиск нового
+                val searchStarted = searchPairUseCase.execute(userId)
+                
+                // Проверяем, был ли найден новый партнер сразу
+                val updatedUser = usersRepository.getUserByMaxId(userId)
+                val hasPartner = updatedUser?.partnerId != null && updatedUser.partnerId!! > 0
+                
+                if (hasPartner) {
+                    // Новый партнер найден! Получаем информацию о нем
+                    val partnerInfo = getPartnerInfoUseCase.execute(userId)
+                    if (partnerInfo != null) {
+                        return HandlerResult(
+                            text = "🎉 Новый напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking)}",
+                            keyboard = Keyboards.partnerWithPartner(),
+                            newState = BotState.PARTNER_MENU
+                        )
+                    }
+                }
+                
                 return HandlerResult(
-                    text = if (changeStarted) "Смена напарника... Ищем нового напарника." else "Не удалось сменить напарника.",
+                    text = "Смена напарника... Ищем нового напарника. Мы уведомим вас, когда найдем подходящего напарника.",
                     keyboard = Keyboards.partnerNoPartner(),
                     newState = BotState.PARTNER_MENU
                 )
