@@ -29,6 +29,11 @@ class UsersRepositoryImpl : UsersRepository {
         UsersTable.update({ UsersTable.id eq user.id }) { it.fillWith(user) }
         Unit
     }
+
+    override fun getUsersBySearchStatus(status: PartnerSearchStatus): List<User> = transaction {
+        UsersTable.select { UsersTable.partnerSearchStatus eq status.statusId }
+            .map { it.toUser() }
+    }
 }
 
 fun UpdateBuilder<*>.fillWith(user: User) {
