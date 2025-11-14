@@ -14,6 +14,9 @@ class RelapseHandler(
     
     override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
         val payload = MessageUtils.getPayload(update)
+        if (payload == "back_to_menu") {
+            return false
+        }
         return currentState == BotState.RELAPSE ||
                payload?.startsWith("relapse_") == true
     }

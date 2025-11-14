@@ -55,9 +55,6 @@ object Keyboards {
             .addRow(
                 CallbackButton("back_to_menu", "В меню")
             )
-            .addRow(
-                CallbackButton("main_menu", "Главное меню")
-            )
     }
 
     // Дневник - календарь

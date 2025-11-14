@@ -16,6 +16,9 @@ class PartnerHandler(
     
     override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
         val payload = MessageUtils.getPayload(update)
+        if (payload == "back_to_menu") {
+            return false
+        }
         return currentState == BotState.PARTNER_MENU ||
                payload?.startsWith("partner_") == true
     }

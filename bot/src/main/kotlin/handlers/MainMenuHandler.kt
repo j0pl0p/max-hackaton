@@ -16,10 +16,9 @@ class MainMenuHandler(
         val text = update.message?.body?.text?.trim()?.lowercase()
         val payload = MessageUtils.getPayload(update)
         
-        // Команда /start или кнопка "Главное меню" или "В меню"
+        // Команда /start или кнопка "В меню"
         return text == "/start" || 
                text == "start" ||
-               payload == "main_menu" ||
                payload == "back_to_menu" ||
                (currentState == BotState.MAIN_MENU && payload == null && text == null)
     }

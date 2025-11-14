@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.max.bot.annotations.CommandHandler
+import org.white_powerbank.repositories.UsersRepository
 
 /**
  * Основной сервис бота, интегрирующийся с MAX SDK
@@ -21,7 +22,7 @@ import ru.max.bot.annotations.CommandHandler
 class MaxBotService(
     token: String,
     private val stateManager: UserStateManager,
-    private val userRepository: UserRepository
+    private val userRepository: UsersRepository
 ) : LongPollingBot(token) {
 
     private val router: MessageRouter by lazy {
