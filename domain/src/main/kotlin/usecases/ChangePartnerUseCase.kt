@@ -7,7 +7,8 @@ import org.white_powerbank.repositories.UsersRepository
  * UseCase для смены напарника
  */
 class ChangePartnerUseCase(
-    private val usersRepository: UsersRepository
+    private val usersRepository: UsersRepository,
+    private val matchPartnersUseCase: MatchPartnersUseCase
 ) {
     /**
      * Сменить напарника (удалить текущего и начать поиск нового)
@@ -24,6 +25,9 @@ class ChangePartnerUseCase(
         user.partnerId = null
         user.partnerSearchStatus = PartnerSearchStatus.ACTIVE
         usersRepository.updateUser(user)
+        
+        // Пытаемся сразу найти нового напарника
+        matchPartnersUseCase.execute(userMaxId)
         
         // Также нужно удалить связь у напарника, если он существует
         if (oldPartnerId != null && oldPartnerId > 0) {

@@ -55,7 +55,7 @@ class PartnerHandler(
                     val partnerInfo = getPartnerInfoUseCase.execute(userId)
                     if (partnerInfo != null) {
                         return HandlerResult(
-                            text = "🎉 Напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking)}",
+                            text = "Напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking)}",
                             keyboard = Keyboards.partnerWithPartner(),
                             newState = BotState.PARTNER_MENU
                         )
