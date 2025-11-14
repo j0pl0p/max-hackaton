@@ -1,15 +1,12 @@
 plugins {
-    kotlin("jvm")
+    id("buildsrc.convention.kotlin-jvm")
 }
 
 group = "org.white_powerbank"
 version = "unspecified"
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
+    implementation(libs.kotlinxDatetime)
     testImplementation(kotlin("test"))
 }
 
