@@ -2,6 +2,7 @@ package org.white_powerbank.bot
 
 import org.white_powerbank.bot.fsm.UserStateManager
 import org.white_powerbank.bot.handlers.*
+import org.white_powerbank.repositories.UsersRepository
 import ru.max.bot.longpolling.LongPollingBot
 import ru.max.bot.annotations.UpdateHandler
 import ru.max.bot.builders.NewMessageBodyBuilder
