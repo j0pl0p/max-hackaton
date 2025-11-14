@@ -12,15 +12,13 @@ import ru.max.bot.builders.NewMessageBodyBuilder
 import ru.max.bot.builders.attachments.AttachmentsBuilder
 import ru.max.botapi.exceptions.ClientException
 import ru.max.botapi.model.MessageCreatedUpdate
+import ru.max.botapi.model.MessageCallbackUpdate
 import ru.max.botapi.model.Update
 import ru.max.botapi.queries.SendMessageQuery
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/**
- * Основной сервис бота, интегрирующийся с MAX SDK
- */
 class MaxBotService(
     token: String,
     private val stateManager: UserStateManager,
@@ -29,7 +27,6 @@ class MaxBotService(
     private val usersAwardsRepository: UsersAwardsRepository
 ) : LongPollingBot(token) {
 
-    // Создаем use cases
     private val matchPartnersUseCase = MatchPartnersUseCase(userRepository)
     private val searchPairUseCase = SearchPairUseCase(userRepository, matchPartnersUseCase)
     private val changePartnerUseCase = ChangePartnerUseCase(userRepository, matchPartnersUseCase)
@@ -44,18 +41,8 @@ class MaxBotService(
     private val router: MessageRouter by lazy {
         val handlers = listOf<Handler>(
             MainMenuHandler(stateManager, startQuitUseCase),
-            PartnerHandler(
-                stateManager,
-                userRepository,
-                searchPairUseCase,
-                changePartnerUseCase,
-                getPartnerInfoUseCase
-            ),
-            StatisticsHandler(
-                stateManager,
-                getStatisticsUseCase,
-                getAchievementsUseCase
-            ),
+            PartnerHandler(stateManager, userRepository, searchPairUseCase, changePartnerUseCase, getPartnerInfoUseCase),
+            StatisticsHandler(stateManager, getStatisticsUseCase, getAchievementsUseCase),
             DiaryHandler(stateManager, userRepository, saveNoteUseCase, diaryEntryDataUseCase),
             RelapseHandler(stateManager, restartQuitUseCase)
         )
@@ -81,53 +68,42 @@ class MaxBotService(
     @Throws(ClientException::class)
     fun onMessageCreated(update: MessageCreatedUpdate) {
         println("Received message update: $update")
+        val chatId = update.message?.recipient?.chatId ?: return
+        processUpdate(update, chatId)
+    }
 
-        val chatId = update.message?.recipient?.chatId
-        val messageId = update.message?.body?.mid
+    @UpdateHandler
+    @Throws(ClientException::class)
+    fun onMessageCallback(update: MessageCallbackUpdate) {
+        println("Received callback update: $update")
+        val chatId = update.message?.recipient?.chatId ?: return
+        processUpdate(update, chatId)
+    }
 
-        if (chatId == null) {
-            println("Error: chatId is null")
-            return
-        }
-
-        // Обрабатываем сообщение асинхронно
+    private fun processUpdate(update: Update, chatId: Long) {
         CoroutineScope(Dispatchers.Default).launch {
             try {
-                // Маршрутизируем сообщение
                 val result = router.route(update)
 
-                // Формируем ответ
-                val messageBody = if (result.keyboard != null) {
-                    NewMessageBodyBuilder.ofText(result.text)
-                        .withAttachments(AttachmentsBuilder.inlineKeyboard(result.keyboard))
-                        .build()
+                // Skip sending message if text is empty (state transitions only)
+                if (result.text.isNotEmpty()) {
+                    val messageBody = if (result.keyboard != null) {
+                        NewMessageBodyBuilder.ofText(result.text)
+                            .withAttachments(AttachmentsBuilder.inlineKeyboard(result.keyboard))
+                            .build()
+                    } else {
+                        NewMessageBodyBuilder.ofText(result.text).build()
+                    }
+
+                    SendMessageQuery(client, messageBody).chatId(chatId).execute()
+                    println("Sent message: ${result.text}")
                 } else {
-                    NewMessageBodyBuilder.ofText(result.text).build()
+                    println("State transition only, no message sent")
                 }
-
-                // Отправляем ответ
-                SendMessageQuery(client, messageBody)
-                    .chatId(chatId)
-                    .execute()
-
-                println("Sent message: ${result.text}")
             } catch (e: Exception) {
                 println("Error processing message: ${e.message}")
                 e.printStackTrace()
-                
-                // Отправляем сообщение об ошибке
-                try {
-                    val errorMessage = NewMessageBodyBuilder.ofText(
-                        "Произошла ошибка при обработке сообщения. Попробуйте позже."
-                    ).build()
-                    SendMessageQuery(client, errorMessage)
-                        .chatId(chatId)
-                        .execute()
-                } catch (sendError: Exception) {
-                    println("Error sending error message: ${sendError.message}")
-                }
             }
         }
     }
 }
-

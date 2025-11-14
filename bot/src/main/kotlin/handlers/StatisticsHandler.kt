@@ -5,7 +5,9 @@ import org.white_powerbank.bot.messages.BotTexts
 import org.white_powerbank.models.BotState
 import org.white_powerbank.usecases.GetStatisticsUseCase
 import org.white_powerbank.usecases.GetAchievementsUseCase
+import ru.max.botapi.model.Update
 import ru.max.botapi.model.MessageCreatedUpdate
+import ru.max.botapi.model.MessageCallbackUpdate
 
 /**
  * Обработчик сценария "Статистика"
@@ -16,16 +18,14 @@ class StatisticsHandler(
     private val getAchievementsUseCase: GetAchievementsUseCase
 ) : Handler {
     
-    override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
-        val payload = MessageUtils.getPayload(update)
-        if (payload == "back_to_menu") {
-            return false
-        }
+    override suspend fun canHandle(update: Update, currentState: BotState): Boolean {
+        val payload = UpdateUtils.getPayload(update)
+        if (payload == "back_to_menu") return false
         return currentState == BotState.STATISTICS
     }
     
-    override suspend fun handle(update: MessageCreatedUpdate, currentState: BotState): HandlerResult {
-        val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
+    override suspend fun handle(update: Update, currentState: BotState): HandlerResult {
+        val userId = UpdateUtils.getUserId(update) ?: return HandlerResult("Ошибка: не удалось определить пользователя")
         
         // Получаем статистику через UseCase
         val statistics = getStatisticsUseCase.execute(userId)

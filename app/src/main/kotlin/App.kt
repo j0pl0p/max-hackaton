@@ -1,118 +1,40 @@
 package org.white_powerbank.app
 
-
-import okhttp3.internal.wait
-import ru.max.bot.longpolling.LongPollingBot
-import ru.max.bot.annotations.UpdateHandler
-import ru.max.bot.builders.NewMessageBodyBuilder
-import ru.max.botapi.exceptions.ClientException
-import ru.max.botapi.model.ChatAdmin
-import ru.max.botapi.model.ChatAdminPermission
-import ru.max.botapi.model.ChatAdminsList
-import ru.max.botapi.model.MessageCreatedUpdate
-import ru.max.botapi.model.Update
-import ru.max.botapi.queries.SendMessageQuery
-import java.lang.Thread.sleep
-import kotlin.concurrent.thread
-import ru.max.botapi.model.Message
-import ru.max.botapi.queries.DeleteMessageQuery
-import ru.max.botapi.queries.EditMessageQuery
-import ru.max.botapi.queries.PostAdminsQuery
-import ru.max.bot.builders.attachments.InlineKeyboardBuilder
-
-
-import kotlin.jvm.Throws
-
-
-val token = System.getenv("MAX_TOKEN")
-
-
-class ReplyBot(val token: String): LongPollingBot(token) {
-
-    override fun start() {
-        super.start()
-        println("bot started with token: $token")
-    }
-
-    override fun onUpdate(update: Update) {
-        super.onUpdate(update)
-        println("Received update: $update")
-    }
-
-    override fun stop() {
-        super.stop()
-        println("bot stopped")
-    }
-
-    @UpdateHandler
-    @Throws(ClientException::class)
-    fun onMessageCreated(update: MessageCreatedUpdate) {
-
-        println("got message")
-        println("Received update: $update")
-
-        val text = update.message?.body?.text
-
-        println("Received message: ${text}")
-
-        val mid = update.message?.body?.mid
-
-        DeleteMessageQuery(client, mid).execute()
-
-        println("message deleted")
-
-
-
-        val user_id = update.message?.sender?.userId
-        val chat_admins = ChatAdminsList(listOf(ChatAdmin(user_id, setOf<ChatAdminPermission>(ChatAdminPermission.READ_ALL_MESSAGES))))
-        val chat_id = update.message?.recipient?.chatId
-
-        println("user_id: $user_id\nchat_admins: $chat_admins\nchat_id: $chat_id")
-
-        try {
-            val res = PostAdminsQuery(
-                client,
-                chat_admins,
-                chat_id
-            ).execute()
-
-            println("PostAdminsResult:\n$res")
-        } catch (e: Exception) {
-            println("Error: $e")
-        }
-
-
-        val replyMessage = NewMessageBodyBuilder.ofText(text?: "не получил текст:(").build()
-
-        SendMessageQuery(client, replyMessage).chatId(update.message?.recipient?.chatId).execute()
-
-        println("Sent message: ${text?: "не получил текст:("}")
-    }
-}
+import org.white_powerbank.app.di.appModule
+import org.white_powerbank.bot.MaxBotService
+import org.white_powerbank.db.DatabaseFactory
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.koin.core.context.startKoin
 
 fun main() {
+    val config = Config.load()
+    
+    startKoin {
+        modules(appModule)
+        properties(mapOf("bot.token" to config.botToken))
+    }
+    
+    DatabaseFactory.init(config.dbUrl, config.dbUser, config.dbPassword)
+    
+    val app = App()
+    app.start(config.botToken)
+}
 
-
-//    println("Starting bot with token $token")
-//    val bot = ReplyBot(token)
-//
-//    try {
-//        bot.start()
-//    } catch (e: Exception) {
-//        println("Error: $e")
-//    }
-//
-//
-//    sleep(100000)
-//
-//    bot.stop()
-
-
-
-
-
-
-
-
-
+class App : KoinComponent {
+    private val botService: MaxBotService by inject()
+    
+    fun start(token: String) {
+        println("Starting StreetImpact bot...")
+        botService.start()
+        println("Bot is running. Press Ctrl+C to stop.")
+        
+        Runtime.getRuntime().addShutdownHook(Thread {
+            println("Shutting down bot...")
+            botService.stop()
+        })
+        
+        // Keep the application running
+        Thread.currentThread().join()
+    }
 }

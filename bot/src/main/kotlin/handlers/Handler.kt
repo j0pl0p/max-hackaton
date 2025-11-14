@@ -1,6 +1,6 @@
 package org.white_powerbank.bot.handlers
 
-import ru.max.botapi.model.MessageCreatedUpdate
+import ru.max.botapi.model.Update
 import ru.max.bot.builders.attachments.InlineKeyboardBuilder
 
 /**
@@ -8,14 +8,14 @@ import ru.max.bot.builders.attachments.InlineKeyboardBuilder
  */
 interface Handler {
     /**
-     * Может ли этот обработчик обработать данное сообщение
+     * Может ли этот обработчик обработать данное обновление
      */
-    suspend fun canHandle(update: MessageCreatedUpdate, currentState: org.white_powerbank.models.BotState): Boolean
+    suspend fun canHandle(update: Update, currentState: org.white_powerbank.models.BotState): Boolean
 
     /**
-     * Обработать сообщение и вернуть ответ
+     * Обработать обновление и вернуть ответ
      */
-    suspend fun handle(update: MessageCreatedUpdate, currentState: org.white_powerbank.models.BotState): HandlerResult
+    suspend fun handle(update: Update, currentState: org.white_powerbank.models.BotState): HandlerResult
 }
 
 /**

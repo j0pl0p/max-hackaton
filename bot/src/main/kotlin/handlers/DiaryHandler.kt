@@ -6,7 +6,9 @@ import org.white_powerbank.models.BotState
 import org.white_powerbank.repositories.UsersRepository
 import org.white_powerbank.usecases.DiaryEntryDataUseCase
 import org.white_powerbank.usecases.SaveNoteUseCase
+import ru.max.botapi.model.Update
 import ru.max.botapi.model.MessageCreatedUpdate
+import ru.max.botapi.model.MessageCallbackUpdate
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
@@ -21,8 +23,8 @@ class DiaryHandler(
     private val diaryEntryDataUseCase: DiaryEntryDataUseCase
 ) : Handler {
     
-    override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
-        val payload = MessageUtils.getPayload(update)
+    override suspend fun canHandle(update: Update, currentState: BotState): Boolean {
+        val payload = UpdateUtils.getPayload(update)
         return currentState in listOf(
             BotState.DIARY_CALENDAR,
             BotState.DIARY_SELECT_DATE,
@@ -31,10 +33,10 @@ class DiaryHandler(
         ) || payload?.startsWith("diary_") == true
     }
     
-    override suspend fun handle(update: MessageCreatedUpdate, currentState: BotState): HandlerResult {
-        val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
-        val payload = MessageUtils.getPayload(update)
-        val text = update.message?.body?.text
+    override suspend fun handle(update: Update, currentState: BotState): HandlerResult {
+        val userId = UpdateUtils.getUserId(update) ?: return HandlerResult("Ошибка: не удалось определить пользователя")
+        val payload = UpdateUtils.getPayload(update)
+        val text = UpdateUtils.getText(update)
         
         // Получаем временные данные из репозитория
         val entryData = diaryEntryDataUseCase.getTemporaryData(userId)
@@ -60,7 +62,7 @@ class DiaryHandler(
     }
     
     private suspend fun handleCalendar(
-        update: MessageCreatedUpdate,
+        update: Update,
         payload: String?,
         userId: Long
     ): HandlerResult {
@@ -107,7 +109,7 @@ class DiaryHandler(
     }
     
     private suspend fun handlePullLevel(
-        update: MessageCreatedUpdate,
+        update: Update,
         payload: String?,
         userId: Long
     ): HandlerResult {
@@ -136,12 +138,12 @@ class DiaryHandler(
     }
     
     private suspend fun handleNote(
-        update: MessageCreatedUpdate,
+        update: Update,
         text: String?,
         entryData: org.white_powerbank.usecases.DiaryEntryData?,
         userId: Long
     ): HandlerResult {
-        val payload = MessageUtils.getPayload(update)
+        val payload = UpdateUtils.getPayload(update)
         if (payload == "back_to_menu") {
             // Удаляем временные данные через use case
             diaryEntryDataUseCase.deleteTemporaryData(userId)

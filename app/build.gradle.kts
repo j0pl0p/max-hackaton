@@ -31,7 +31,7 @@ dependencies {
 }
 
 application {
-    mainClass = "org.white_powerbank.app.MainKt"
+    mainClass = "org.white_powerbank.app.AppKt"
 }
 
 tasks.test {
