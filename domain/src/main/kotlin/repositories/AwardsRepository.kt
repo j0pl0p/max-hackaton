@@ -6,6 +6,6 @@ interface AwardsRepository {
 
     fun getAwards(): List<Award>
 
-    fun getAward(id: Long): Award
+    fun getAward(id: Long): Award?
 
 }
