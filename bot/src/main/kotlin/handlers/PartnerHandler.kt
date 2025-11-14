@@ -8,10 +8,8 @@ import org.white_powerbank.usecases.ChangePartnerUseCase
 import org.white_powerbank.usecases.GetPartnerInfoUseCase
 import org.white_powerbank.usecases.SearchPairUseCase
 import ru.max.botapi.model.MessageCreatedUpdate
+import ru.max.botapi.model.MessageCallbackUpdate
 
-/**
- * Обработчик сценария "Напарник"
- */
 class PartnerHandler(
     private val stateManager: org.white_powerbank.bot.fsm.UserStateManager,
     private val usersRepository: UsersRepository,
@@ -22,36 +20,36 @@ class PartnerHandler(
     
     override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
         val payload = MessageUtils.getPayload(update)
-        if (payload == "back_to_menu") {
-            return false
-        }
-        return currentState == BotState.PARTNER_MENU ||
-               payload?.startsWith("partner_") == true
+        if (payload == "back_to_menu") return false
+        return currentState == BotState.PARTNER_MENU || payload?.startsWith("partner_") == true
+    }
+    
+    override suspend fun canHandleCallback(update: MessageCallbackUpdate, currentState: BotState): Boolean {
+        val payload = MessageUtils.getPayload(update)
+        if (payload == "back_to_menu") return false
+        return currentState == BotState.PARTNER_MENU || payload?.startsWith("partner_") == true
     }
     
     override suspend fun handle(update: MessageCreatedUpdate, currentState: BotState): HandlerResult {
-        val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
-        val user = usersRepository.getUserByMaxId(userId)
+        val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка")
         val payload = MessageUtils.getPayload(update)
-        
-        // Обработка кнопок
+        return processPartner(userId, payload)
+    }
+    
+    override suspend fun handleCallback(update: MessageCallbackUpdate, currentState: BotState): HandlerResult {
+        val userId = update.callback?.user?.userId ?: return HandlerResult("Ошибка")
+        val payload = MessageUtils.getPayload(update)
+        return processPartner(userId, payload)
+    }
+    
+    private suspend fun processPartner(userId: Long, payload: String?): HandlerResult {
         when (payload) {
             "partner_search" -> {
-                val searchStarted = searchPairUseCase.execute(userId)
-                if (!searchStarted) {
-                    return HandlerResult(
-                        text = "Не удалось начать поиск. Возможно, у вас уже есть напарник.",
-                        keyboard = Keyboards.partnerNoPartner(),
-                        newState = BotState.PARTNER_MENU
-                    )
-                }
-                
-                // Проверяем, был ли найден партнер сразу
+                searchPairUseCase.execute(userId)
                 val updatedUser = usersRepository.getUserByMaxId(userId)
                 val hasPartner = updatedUser?.partnerId != null && updatedUser.partnerId!! > 0
                 
                 if (hasPartner) {
-                    // Партнер найден! Получаем информацию о нем
                     val partnerInfo = getPartnerInfoUseCase.execute(userId)
                     if (partnerInfo != null) {
                         return HandlerResult(
@@ -63,30 +61,19 @@ class PartnerHandler(
                 }
                 
                 return HandlerResult(
-                    text = "Ищем напарника... Мы уведомим вас, когда найдем подходящего напарника.",
+                    text = "Ищем напарника...",
                     keyboard = Keyboards.partnerNoPartner(),
                     newState = BotState.PARTNER_MENU
                 )
             }
             "partner_change" -> {
-                val changeStarted = changePartnerUseCase.execute(userId)
-                if (!changeStarted) {
-                    return HandlerResult(
-                        text = "Не удалось сменить напарника.",
-                        keyboard = Keyboards.partnerNoPartner(),
-                        newState = BotState.PARTNER_MENU
-                    )
-                }
+                changePartnerUseCase.execute(userId)
+                searchPairUseCase.execute(userId)
                 
-                // После смены напарника начинаем поиск нового
-                val searchStarted = searchPairUseCase.execute(userId)
-                
-                // Проверяем, был ли найден новый партнер сразу
                 val updatedUser = usersRepository.getUserByMaxId(userId)
                 val hasPartner = updatedUser?.partnerId != null && updatedUser.partnerId!! > 0
                 
                 if (hasPartner) {
-                    // Новый партнер найден! Получаем информацию о нем
                     val partnerInfo = getPartnerInfoUseCase.execute(userId)
                     if (partnerInfo != null) {
                         return HandlerResult(
@@ -98,41 +85,31 @@ class PartnerHandler(
                 }
                 
                 return HandlerResult(
-                    text = "Смена напарника... Ищем нового напарника. Мы уведомим вас, когда найдем подходящего напарника.",
+                    text = "Ищем нового напарника...",
                     keyboard = Keyboards.partnerNoPartner(),
                     newState = BotState.PARTNER_MENU
                 )
             }
         }
         
-        // Проверяем, есть ли напарник
+        val user = usersRepository.getUserByMaxId(userId)
         val hasPartner = user?.partnerId != null && user.partnerId!! > 0
         
         if (hasPartner) {
-            // Получаем информацию о напарнике через UseCase
             val partnerInfo = getPartnerInfoUseCase.execute(userId)
-            
             if (partnerInfo != null) {
                 return HandlerResult(
                     text = BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking),
                     keyboard = Keyboards.partnerWithPartner(),
                     newState = BotState.PARTNER_MENU
                 )
-            } else {
-                // Если не удалось получить информацию о напарнике
-                return HandlerResult(
-                    text = "Не удалось получить информацию о напарнике.",
-                    keyboard = Keyboards.partnerWithPartner(),
-                    newState = BotState.PARTNER_MENU
-                )
             }
-        } else {
-            return HandlerResult(
-                text = BotTexts.NO_PARTNER_MESSAGE,
-                keyboard = Keyboards.partnerNoPartner(),
-                newState = BotState.PARTNER_MENU
-            )
         }
+        
+        return HandlerResult(
+            text = BotTexts.NO_PARTNER_MESSAGE,
+            keyboard = Keyboards.partnerNoPartner(),
+            newState = BotState.PARTNER_MENU
+        )
     }
 }
-

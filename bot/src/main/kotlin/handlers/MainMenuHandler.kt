@@ -5,10 +5,8 @@ import org.white_powerbank.bot.messages.BotTexts
 import org.white_powerbank.models.BotState
 import org.white_powerbank.usecases.StartQuitUseCase
 import ru.max.botapi.model.MessageCreatedUpdate
+import ru.max.botapi.model.MessageCallbackUpdate
 
-/**
- * Обработчик главного меню
- */
 class MainMenuHandler(
     private val stateManager: org.white_powerbank.bot.fsm.UserStateManager,
     private val startQuitUseCase: StartQuitUseCase
@@ -18,21 +16,46 @@ class MainMenuHandler(
         val text = update.message?.body?.text?.trim()?.lowercase()
         val payload = MessageUtils.getPayload(update)
         
-        // Команда /start или кнопка "В меню"
-        return text == "/start" || 
-               text == "start" ||
-               payload == "back_to_menu" ||
-               (currentState == BotState.MAIN_MENU && payload == null && text == null)
+        if (text == "/start" || text == "start" || payload == "back_to_menu") return true
+        
+        // Не обрабатываем main_* payload если уже в соответствующем состоянии
+        if (payload == "main_partner" && currentState == BotState.PARTNER_MENU) return false
+        if (payload == "main_diary" && currentState == BotState.DIARY_CALENDAR) return false
+        if (payload == "main_statistics" && currentState == BotState.STATISTICS) return false
+        if (payload == "main_relapse" && currentState == BotState.RELAPSE) return false
+        
+        return payload?.startsWith("main_") == true
+    }
+    
+    override suspend fun canHandleCallback(update: MessageCallbackUpdate, currentState: BotState): Boolean {
+        val payload = MessageUtils.getPayload(update)
+        
+        if (payload == "back_to_menu") return true
+        
+        // Не обрабатываем main_* payload если уже в соответствующем состоянии
+        if (payload == "main_partner" && currentState == BotState.PARTNER_MENU) return false
+        if (payload == "main_diary" && currentState == BotState.DIARY_CALENDAR) return false
+        if (payload == "main_statistics" && currentState == BotState.STATISTICS) return false
+        if (payload == "main_relapse" && currentState == BotState.RELAPSE) return false
+        
+        return payload?.startsWith("main_") == true
     }
     
     override suspend fun handle(update: MessageCreatedUpdate, currentState: BotState): HandlerResult {
         val payload = MessageUtils.getPayload(update)
-        
-        // Обработка кнопок главного меню
+        return processPayload(payload, update.message?.sender?.userId)
+    }
+    
+    override suspend fun handleCallback(update: MessageCallbackUpdate, currentState: BotState): HandlerResult {
+        val payload = MessageUtils.getPayload(update)
+        return processPayload(payload, update.callback?.user?.userId)
+    }
+    
+    private suspend fun processPayload(payload: String?, userId: Long?): HandlerResult {
         when (payload) {
             "main_quit" -> {
-                val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
-                val started = startQuitUseCase.execute(userId)
+                val uid = userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
+                val started = startQuitUseCase.execute(uid)
                 return HandlerResult(
                     text = if (started) "Начинаем процесс отказа от курения..." else "Не удалось начать процесс отказа.",
                     keyboard = Keyboards.backToMenu(),
@@ -69,7 +92,6 @@ class MainMenuHandler(
             }
         }
         
-        // Показываем главное меню
         return HandlerResult(
             text = BotTexts.WELCOME_MESSAGE,
             keyboard = Keyboards.mainMenu(),
@@ -77,4 +99,3 @@ class MainMenuHandler(
         )
     }
 }
-

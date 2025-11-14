@@ -6,27 +6,29 @@ import org.white_powerbank.models.BotState
 import org.white_powerbank.models.PartnerSearchStatus
 import org.white_powerbank.models.User
 import ru.max.botapi.model.MessageCreatedUpdate
+import ru.max.botapi.model.MessageCallbackUpdate
 import java.time.LocalDateTime
 
-/**
- * Маршрутизатор сообщений
- * Определяет, какой обработчик должен обработать входящее сообщение
- */
 class MessageRouter(
     private val stateManager: UserStateManager,
     private val usersRepository: UsersRepository,
     private val handlers: List<Handler>
 ) {
-    /**
-     * Обработать входящее сообщение
-     */
     suspend fun route(update: MessageCreatedUpdate): HandlerResult {
-        val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
-        
-        // Получаем или создаем пользователя
-        var user = usersRepository.getUserByMaxId(userId)
-        if (user == null) {
-            val newUser = User(
+        val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка")
+        ensureUserExists(userId)
+        return processHandlers(update, userId, true)
+    }
+
+    suspend fun routeCallback(update: MessageCallbackUpdate): HandlerResult {
+        val userId = update.callback?.user?.userId ?: return HandlerResult("Ошибка")
+        ensureUserExists(userId)
+        return processHandlers(update, userId, true)
+    }
+
+    private suspend fun ensureUserExists(userId: Long) {
+        if (usersRepository.getUserByMaxId(userId) == null) {
+            usersRepository.addUser(User(
                 id = 0,
                 maxId = userId,
                 state = BotState.MAIN_MENU,
@@ -36,70 +38,53 @@ class MessageRouter(
                 isQuitting = false,
                 lastStart = null,
                 averageMonthlyExpenses = 0L
-            )
-            usersRepository.addUser(newUser)
-            user = usersRepository.getUserByMaxId(userId)
+            ))
         }
+    }
+
+    private suspend fun processHandlers(update: Any, userId: Long, checkPayload: Boolean): HandlerResult {
+        val currentState = stateManager.getState(userId) ?: BotState.MAIN_MENU
+        println("MessageRouter.processHandlers: currentState=$currentState, checkPayload=$checkPayload")
         
-        var currentState = stateManager.getState(userId) ?: BotState.MAIN_MENU
-        var lastResult: HandlerResult? = null
-        
-        // Обрабатываем сообщение, возможно несколько раз, если состояние изменилось
-        var iterations = 0
-        while (iterations < 10) { // Защита от бесконечного цикла
-            iterations++
+        for (handler in handlers) {
+            val canHandle = when (update) {
+                is MessageCreatedUpdate -> handler.canHandle(update, currentState)
+                is MessageCallbackUpdate -> handler.canHandleCallback(update, currentState)
+                else -> false
+            }
             
-            // Ищем подходящий обработчик
-            var handlerFound = false
-            for (handler in handlers) {
-                if (handler.canHandle(update, currentState)) {
-                    val result = handler.handle(update, currentState)
-                    lastResult = result
-                    
-                    // Обновляем состояние, если оно изменилось
-                    result.newState?.let { newState ->
-                        if (newState != currentState) {
-                            stateManager.setState(userId, newState)
-                            currentState = newState
-                            
-                            // Если текст пустой, продолжаем обработку с новым состоянием
-                            if (result.text.isEmpty()) {
-                                handlerFound = true
-                                break
-                            }
+            println("Handler ${handler::class.simpleName} canHandle=$canHandle")
+            
+            if (canHandle) {
+                val result = when (update) {
+                    is MessageCreatedUpdate -> handler.handle(update, currentState)
+                    is MessageCallbackUpdate -> handler.handleCallback(update, currentState)
+                    else -> return HandlerResult("Неизвестный тип обновления")
+                }
+                
+                println("Result: text='${result.text}', newState=${result.newState}")
+                
+                result.newState?.let { newState ->
+                    if (newState != currentState) {
+                        stateManager.setState(userId, newState)
+                        println("State changed from $currentState to $newState")
+                        
+                        if (result.text.isEmpty()) {
+                            println("Text is empty, recursing...")
+                            return processHandlers(update, userId, false)
                         }
                     }
-                    
-                    // Если текст не пустой, возвращаем результат
-                    if (result.text.isNotEmpty()) {
-                        return result
-                    }
-                    
-                    handlerFound = true
-                    break
                 }
-            }
-            
-            // Если не нашли обработчик или текст не пустой, выходим
-            if (!handlerFound || lastResult?.text?.isNotEmpty() == true) {
-                break
+                
+                return result
             }
         }
         
-        // Если после всех итераций текст все еще пустой, возвращаем главное меню
-        if (lastResult?.text?.isEmpty() == true) {
-            return HandlerResult(
-                text = "Неизвестная команда. Возвращаюсь в главное меню.",
-                keyboard = org.white_powerbank.bot.keyboards.Keyboards.mainMenu(),
-                newState = BotState.MAIN_MENU
-            )
-        }
-        
-        return lastResult ?: HandlerResult(
+        println("No handler found, returning default")
+        return HandlerResult(
             text = "Неизвестная команда. Возвращаюсь в главное меню.",
             keyboard = org.white_powerbank.bot.keyboards.Keyboards.mainMenu(),
             newState = BotState.MAIN_MENU
         )
     }
 }
-

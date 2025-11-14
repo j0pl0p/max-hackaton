@@ -6,10 +6,8 @@ import org.white_powerbank.models.BotState
 import org.white_powerbank.usecases.GetStatisticsUseCase
 import org.white_powerbank.usecases.GetAchievementsUseCase
 import ru.max.botapi.model.MessageCreatedUpdate
+import ru.max.botapi.model.MessageCallbackUpdate
 
-/**
- * Обработчик сценария "Статистика"
- */
 class StatisticsHandler(
     private val stateManager: org.white_powerbank.bot.fsm.UserStateManager,
     private val getStatisticsUseCase: GetStatisticsUseCase,
@@ -18,19 +16,28 @@ class StatisticsHandler(
     
     override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
         val payload = MessageUtils.getPayload(update)
-        if (payload == "back_to_menu") {
-            return false
-        }
+        if (payload == "back_to_menu") return false
+        return currentState == BotState.STATISTICS
+    }
+    
+    override suspend fun canHandleCallback(update: MessageCallbackUpdate, currentState: BotState): Boolean {
+        val payload = MessageUtils.getPayload(update)
+        if (payload == "back_to_menu") return false
         return currentState == BotState.STATISTICS
     }
     
     override suspend fun handle(update: MessageCreatedUpdate, currentState: BotState): HandlerResult {
-        val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
-        
-        // Получаем статистику через UseCase
+        val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка")
+        return getStatistics(userId)
+    }
+    
+    override suspend fun handleCallback(update: MessageCallbackUpdate, currentState: BotState): HandlerResult {
+        val userId = update.callback?.user?.userId ?: return HandlerResult("Ошибка")
+        return getStatistics(userId)
+    }
+    
+    private suspend fun getStatistics(userId: Long): HandlerResult {
         val statistics = getStatisticsUseCase.execute(userId)
-        
-        // Получаем достижения через UseCase
         val achievements = getAchievementsUseCase.execute(userId)
         
         val statisticsText = buildString {
@@ -54,4 +61,3 @@ class StatisticsHandler(
         )
     }
 }
-
