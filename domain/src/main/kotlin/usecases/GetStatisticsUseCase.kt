@@ -58,9 +58,9 @@ class GetStatisticsUseCase(
         // Текущий стрик - дни с последней записи
         val currentStreak = lastSmokingDay
         
-        // Количество срывов - упрощенно, считаем по количеству записей с высоким уровнем тяги
-        // TODO: добавить поле failed в Note для более точного подсчета
-        val totalRelapses = sortedNotes.count { it.pullLevel >= 8 }
+        // Количество срывов - считаем по количеству записей с failed = true
+        // по записям, где явно указан срыв
+        val totalRelapses = sortedNotes.count { it.failed  }
         
         return UserStatistics(
             lastSmokingDay = lastSmokingDay,

@@ -38,6 +38,7 @@ class SaveNoteUseCase(
             existingNote.apply {
                 this.pullLevel = pullLevel
                 this.body = body
+                this.failed = failed
             }
         } else {
             // Создаем новую запись
@@ -46,6 +47,7 @@ class SaveNoteUseCase(
                 userId = userId,
                 date = date,
                 pullLevel = pullLevel,
+                failed = failed,
                 body = body
             )
         }

@@ -3,13 +3,15 @@ package org.white_powerbank.bot.handlers
 import org.white_powerbank.bot.keyboards.Keyboards
 import org.white_powerbank.bot.messages.BotTexts
 import org.white_powerbank.models.BotState
+import org.white_powerbank.usecases.RestartQuitUseCase
 import ru.max.botapi.model.MessageCreatedUpdate
 
 /**
  * Обработчик сценария "Сорвался"
  */
 class RelapseHandler(
-    private val stateManager: org.white_powerbank.bot.fsm.UserStateManager
+    private val stateManager: org.white_powerbank.bot.fsm.UserStateManager,
+    private val restartQuitUseCase: RestartQuitUseCase
 ) : Handler {
     
     override suspend fun canHandle(update: MessageCreatedUpdate, currentState: BotState): Boolean {
@@ -34,9 +36,10 @@ class RelapseHandler(
                 )
             }
             "relapse_restart" -> {
-                // TODO: вызвать UseCase для начала заново
+                val userId = update.message?.sender?.userId ?: return HandlerResult("Ошибка: не удалось определить пользователя")
+                val restarted = restartQuitUseCase.execute(userId)
                 return HandlerResult(
-                    text = "Начинаем заново. Ты справишься!",
+                    text = if (restarted) "Начинаем заново. Ты справишься!" else "Не удалось начать заново.",
                     keyboard = Keyboards.mainMenu(),
                     newState = BotState.MAIN_MENU
                 )
