@@ -91,11 +91,12 @@ class MaxBotService(
                 // Skip sending message if text is empty (state transitions only)
                 if (result.text.isNotEmpty()) {
                     val messageBody = if (result.keyboard != null) {
-                        NewMessageBodyBuilder.ofText(result.text)
+                        NewMessageBodyBuilder.ofText(result.text, ru.max.botapi.model.TextFormat.MARKDOWN)
                             .withAttachments(AttachmentsBuilder.inlineKeyboard(result.keyboard))
                             .build()
                     } else {
-                        NewMessageBodyBuilder.ofText(result.text).build()
+                        NewMessageBodyBuilder.ofText(result.text, ru.max.botapi.model.TextFormat.MARKDOWN)
+                            .build()
                     }
 
                     SendMessageQuery(client, messageBody).chatId(chatId).execute()

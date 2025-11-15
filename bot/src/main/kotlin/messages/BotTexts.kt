@@ -18,8 +18,8 @@ object BotTexts {
 
     // Напарник
     val NO_PARTNER_MESSAGE = "У вас пока нет напарника"
-    fun getPartnerInfo(partnerName: String, days: Int) = """
-        🤝 Ваш напарник: $partnerName
+    fun getPartnerInfo(partnerName: String, days: Int, partnerId: Long) = """
+        🤝 Ваш напарник: [$partnerName](max://max.ru/$partnerId)
         🔥 Стрик напарника: $days дней
     """.trimIndent()
 
