@@ -16,6 +16,7 @@ object UsersTable : Table("users") {
     val lastStart = date("last_start").nullable()
     val averageMonthlyExpenses = long("average_monthly_expenses")
     val maxStreak = integer("max_streak").default(0)
+    val profileLink = varchar("profile_link", 500).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }

@@ -13,5 +13,6 @@ data class User(
     var isQuitting: Boolean,
     var lastStart: LocalDate?,
     var averageMonthlyExpenses: Long,
-    var maxStreak: Int
+    var maxStreak: Int,
+    var profileLink: String?
 )

@@ -9,7 +9,7 @@ import java.util.Date
 data class PartnerInfo(
     val name: String,
     val daysWithoutSmoking: Int,
-    val maxId: Long
+    val profileLink: String?
 )
 
 class GetPartnerInfoUseCase(
@@ -43,7 +43,7 @@ class GetPartnerInfoUseCase(
         return PartnerInfo(
             name = partnerName,
             daysWithoutSmoking = daysWithoutSmoking,
-            maxId = partner.maxId
+            profileLink = partner.profileLink
         )
     }
     

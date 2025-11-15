@@ -30,14 +30,16 @@ fun main() {
         id = 0, maxId = 12345, state = BotState.MAIN_MENU,
         partnerId = null, partnerSearchStatus = PartnerSearchStatus.ACTIVE,
         lastActivity = LocalDateTime.now(), isQuitting = false,
-        lastStart = LocalDate.now(), averageMonthlyExpenses = 50000, maxStreak = 0
+        lastStart = LocalDate.now(), averageMonthlyExpenses = 50000, maxStreak = 0,
+        profileLink = null
     )
     
     val user2 = User(
         id = 0, maxId = 67890, state = BotState.DIARY_CALENDAR,
         partnerId = null, partnerSearchStatus = PartnerSearchStatus.INACTIVE,
         lastActivity = LocalDateTime.now().minusDays(1), isQuitting = false,
-        lastStart = LocalDate.now().minusDays(5), averageMonthlyExpenses = 75000, maxStreak = 0
+        lastStart = LocalDate.now().minusDays(5), averageMonthlyExpenses = 75000, maxStreak = 0,
+        profileLink = null
     )
 
     usersRepo.addUser(user1)

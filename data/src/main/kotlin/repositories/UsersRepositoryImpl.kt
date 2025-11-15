@@ -98,6 +98,7 @@ fun UpdateBuilder<*>.fillWith(user: User) {
     this[UsersTable.lastStart] = user.lastStart
     this[UsersTable.averageMonthlyExpenses] = user.averageMonthlyExpenses
     this[UsersTable.maxStreak] = user.maxStreak
+    this[UsersTable.profileLink] = user.profileLink
 }
 
 fun ResultRow.toUser() = User(
@@ -110,5 +111,6 @@ fun ResultRow.toUser() = User(
     isQuitting = this[UsersTable.isQuitting],
     lastStart = this[UsersTable.lastStart],
     averageMonthlyExpenses = this[UsersTable.averageMonthlyExpenses],
-    maxStreak = this[UsersTable.maxStreak]
+    maxStreak = this[UsersTable.maxStreak],
+    profileLink = this[UsersTable.profileLink]
 )

@@ -25,6 +25,12 @@ class PartnerHandler(
     override suspend fun canHandle(update: Update, currentState: BotState): Boolean {
         val payload = UpdateUtils.getPayload(update)
         if (payload == "back_to_menu") return false
+        
+        // Обрабатываем ENTER_PROFILE_LINK только для MessageCreatedUpdate
+        if (currentState == BotState.ENTER_PROFILE_LINK) {
+            return update is ru.max.botapi.model.MessageCreatedUpdate
+        }
+        
         return currentState == BotState.PARTNER_MENU || payload?.startsWith("partner_") == true
     }
     
@@ -32,10 +38,52 @@ class PartnerHandler(
         val userId = UpdateUtils.getUserId(update) ?: return HandlerResult("Ошибка: не удалось определить пользователя")
         val user = usersRepository.getUserByMaxId(userId)
         val payload = UpdateUtils.getPayload(update)
+        val text = UpdateUtils.getText(update)
+        
+        // Обработка ввода ссылки профиля (только для MessageCreatedUpdate)
+        if (currentState == BotState.ENTER_PROFILE_LINK && update is ru.max.botapi.model.MessageCreatedUpdate) {
+            if (text != null && text.isNotBlank() && !text.startsWith("/")) {
+                val trimmedText = text.trim()
+                
+                // Проверяем формат ссылки
+                if (trimmedText.startsWith("https://max.ru/u/")) {
+                    user?.let {
+                        it.profileLink = trimmedText
+                        usersRepository.updateUser(it)
+                    }
+                    return HandlerResult(
+                        text = "Ссылка на профиль сохранена! Теперь можно искать напарника.",
+                        keyboard = Keyboards.partnerNoPartner(),
+                        newState = BotState.PARTNER_MENU
+                    )
+                } else {
+                    return HandlerResult(
+                        text = "Ссылка неправильная. Отправьте ссылку в формате: https://max.ru/u/...",
+                        keyboard = Keyboards.backToMenu(),
+                        newState = BotState.ENTER_PROFILE_LINK
+                    )
+                }
+            }
+            // Если текст некорректный, просим еще раз
+            return HandlerResult(
+                text = "Отправьте ссылку на ваш профиль в MAX:",
+                keyboard = Keyboards.backToMenu(),
+                newState = BotState.ENTER_PROFILE_LINK
+            )
+        }
         
         // Обработка кнопок
         when (payload) {
             "partner_search" -> {
+                // Проверяем наличие ссылки профиля
+                if (user?.profileLink.isNullOrBlank()) {
+                    return HandlerResult(
+                        text = "Для поиска напарника нужна ссылка на ваш профиль.\n\nОтправьте ссылку на ваш профиль в MAX:",
+                        keyboard = Keyboards.backToMenu(),
+                        newState = BotState.ENTER_PROFILE_LINK
+                    )
+                }
+                
                 val searchStarted = searchPairUseCase.execute(userId)
                 if (!searchStarted) {
                     return HandlerResult(
@@ -54,7 +102,7 @@ class PartnerHandler(
                     val partnerInfo = getPartnerInfoUseCase.execute(userId)
                     if (partnerInfo != null) {
                         return HandlerResult(
-                            text = "Напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking, partnerInfo.maxId)}",
+                            text = "Напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking, partnerInfo.profileLink)}",
                             keyboard = Keyboards.partnerWithPartner(),
                             newState = BotState.PARTNER_MENU
                         )
@@ -89,7 +137,7 @@ class PartnerHandler(
                     val partnerInfo = getPartnerInfoUseCase.execute(userId)
                     if (partnerInfo != null) {
                         return HandlerResult(
-                            text = "🎉 Новый напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking, partnerInfo.maxId)}",
+                            text = "🎉 Новый напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking, partnerInfo.profileLink)}",
                             keyboard = Keyboards.partnerWithPartner(),
                             newState = BotState.PARTNER_MENU
                         )
@@ -113,7 +161,7 @@ class PartnerHandler(
             
             if (partnerInfo != null) {
                 HandlerResult(
-                    text = BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking, partnerInfo.maxId),
+                    text = BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking, partnerInfo.profileLink),
                     keyboard = Keyboards.partnerWithPartner(),
                     newState = BotState.PARTNER_MENU
                 )

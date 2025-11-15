@@ -38,7 +38,8 @@ class MessageRouter(
                 isQuitting = false,
                 lastStart = null,
                 averageMonthlyExpenses = 0L,
-                maxStreak = 0
+                maxStreak = 0,
+                profileLink = null
             ))
         }
     }
