@@ -8,6 +8,7 @@ data class User(
     var maxId: Long,
     var state: BotState,
     var partnerId: Long?,
+    var tempNoteId: Long?,
     var partnerSearchStatus: PartnerSearchStatus,
     var lastActivity: LocalDateTime,
     var isQuitting: Boolean,

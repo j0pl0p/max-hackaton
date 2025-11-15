@@ -10,6 +10,7 @@ object UsersTable : Table("users") {
     val maxId = long("max_id").uniqueIndex()
     val state = integer("state").index()
     val partnerId = long("partner_id").nullable().index()
+    val tempNoteId = long("temp_note_id").nullable()
     val partnerSearchStatus = integer("partner_search_status").index()
     val lastActivity = datetime("last_activity").nullable().index()
     val isQuitting = bool("is_quitting")

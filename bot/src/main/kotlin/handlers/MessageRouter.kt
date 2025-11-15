@@ -33,6 +33,7 @@ class MessageRouter(
                 maxId = userId,
                 state = BotState.WELCOME,
                 partnerId = null,
+                tempNoteId = null,
                 partnerSearchStatus = PartnerSearchStatus.INACTIVE,
                 lastActivity = LocalDateTime.now(),
                 isQuitting = false,

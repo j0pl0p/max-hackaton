@@ -92,6 +92,7 @@ fun UpdateBuilder<*>.fillWith(user: User) {
     this[UsersTable.maxId] = user.maxId
     this[UsersTable.state] = user.state.id.toInt()
     this[UsersTable.partnerId] = user.partnerId
+    this[UsersTable.tempNoteId] = user.tempNoteId
     this[UsersTable.partnerSearchStatus] = user.partnerSearchStatus.statusId
     this[UsersTable.lastActivity] = user.lastActivity
     this[UsersTable.isQuitting] = user.isQuitting
@@ -105,6 +106,7 @@ fun ResultRow.toUser() = User(
     maxId = this[UsersTable.maxId],
     state = BotState.fromId(this[UsersTable.state].toLong()),
     partnerId = this[UsersTable.partnerId],
+    tempNoteId = this[UsersTable.tempNoteId],
     partnerSearchStatus = PartnerSearchStatus.fromId(this[UsersTable.partnerSearchStatus]),
     lastActivity = this[UsersTable.lastActivity] ?: throw IllegalStateException("LastActivity cannot be null"),
     isQuitting = this[UsersTable.isQuitting],
