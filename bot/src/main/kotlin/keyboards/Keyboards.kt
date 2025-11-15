@@ -119,7 +119,7 @@ object Keyboards {
                 currentRow.add(CallbackButton("diary_future_date", day.toString()))
             } else {
                 // Добавляем смайлик для сегодняшней даты
-                val buttonText = if (currentDate == today) "🚬 $day" else day.toString()
+                val buttonText = if (currentDate == today) "⭐ $day" else day.toString()
                 currentRow.add(CallbackButton("diary_calendar_date:$dateStr", buttonText))
             }
             
