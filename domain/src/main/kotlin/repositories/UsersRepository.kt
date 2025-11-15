@@ -20,4 +20,20 @@ interface UsersRepository {
      */
     fun getUsersBySearchStatus(status: PartnerSearchStatus): List<User>
 
+    /**
+     * Атомарно связать двух пользователей как партнеров
+     * @param user1Id ID первого пользователя
+     * @param user2Id ID второго пользователя
+     * @return true если операция успешна
+     */
+    fun matchPartners(user1Id: Long, user2Id: Long): Boolean
+
+    /**
+     * Атомарно разорвать связь между партнерами
+     * @param userId ID пользователя
+     * @param partnerId ID партнера
+     * @return true если операция успешна
+     */
+    fun unmatchPartners(userId: Long, partnerId: Long): Boolean
+
 }

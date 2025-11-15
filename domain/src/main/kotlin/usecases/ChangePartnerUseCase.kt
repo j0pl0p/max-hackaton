@@ -17,28 +17,15 @@ class ChangePartnerUseCase(
      */
     suspend fun execute(userMaxId: Long): Boolean {
         val user = usersRepository.getUserByMaxId(userMaxId) ?: return false
-        
-        // Сохраняем ID текущего напарника перед удалением
         val oldPartnerId = user.partnerId
         
-        // Удаляем текущего напарника и начинаем поиск нового
-        user.partnerId = null
-        user.partnerSearchStatus = PartnerSearchStatus.ACTIVE
-        usersRepository.updateUser(user)
+        if (oldPartnerId == null || oldPartnerId <= 0) return false
+        
+        // Атомарно разрываем связь с текущим партнером
+        if (!usersRepository.unmatchPartners(user.id, oldPartnerId)) return false
         
         // Пытаемся сразу найти нового напарника
         matchPartnersUseCase.execute(userMaxId)
-        
-        // Также нужно удалить связь у напарника, если он существует
-        if (oldPartnerId != null && oldPartnerId > 0) {
-            val partner = usersRepository.getUserById(oldPartnerId)
-            if (partner != null && partner.partnerId == user.id) {
-                // Если напарник указывал на этого пользователя, удаляем связь
-                partner.partnerId = null
-                partner.partnerSearchStatus = PartnerSearchStatus.INACTIVE
-                usersRepository.updateUser(partner)
-            }
-        }
         
         return true
     }

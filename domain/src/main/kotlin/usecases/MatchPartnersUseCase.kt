@@ -39,18 +39,10 @@ class MatchPartnersUseCase(
         }
         
         if (partner != null) {
-            // Нашли партнера - связываем их
-            user.partnerId = partner.id
-            user.partnerSearchStatus = PartnerSearchStatus.FOUND
-            
-            partner.partnerId = user.id
-            partner.partnerSearchStatus = PartnerSearchStatus.FOUND
-            
-            // Сохраняем изменения
-            usersRepository.updateUser(user)
-            usersRepository.updateUser(partner)
-            
-            return partner.maxId
+            // Нашли партнера - связываем их атомарно
+            return if (usersRepository.matchPartners(user.id, partner.id)) {
+                partner.maxId
+            } else null
         }
         
         // Партнер не найден - статус остается ACTIVE, чтобы другие могли найти этого пользователя
