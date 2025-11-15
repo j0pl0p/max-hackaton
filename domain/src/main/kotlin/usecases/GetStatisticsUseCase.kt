@@ -16,7 +16,8 @@ data class UserStatistics(
 
 class GetStatisticsUseCase(
     private val usersRepository: UsersRepository,
-    private val notesRepository: NotesRepository
+    private val notesRepository: NotesRepository,
+    private val checkAwardsUseCase: CheckAwardsUseCase
 ) {
     /**
      * Получить статистику пользователя
@@ -38,6 +39,9 @@ class GetStatisticsUseCase(
             user.maxStreak = currentStreak
             usersRepository.updateUser(user)
         }
+        
+        // Проверяем и выдаем новые награды
+        checkAwardsUseCase.execute(userMaxId, currentStreak)
         
         // Получаем все записи пользователя для подсчета срывов
         val notes = notesRepository.getNotesByUserId(user.id)

@@ -72,6 +72,28 @@ object Keyboards {
                 CallbackButton("back_to_menu", "В меню")
             )
     }
+    
+    // Навигация по наградам
+    fun awardsNavigation(currentPage: Int, hasNext: Boolean, hasPrev: Boolean): InlineKeyboardBuilder {
+        var builder = InlineKeyboardBuilder.empty()
+        
+        // Кнопки навигации
+        val navButtons = mutableListOf<CallbackButton>()
+        if (hasPrev) {
+            navButtons.add(CallbackButton("awards_prev_${currentPage - 1}", "◀️ Пред"))
+        }
+        if (hasNext) {
+            navButtons.add(CallbackButton("awards_next_${currentPage + 1}", "Посл ▶️"))
+        }
+        
+        if (navButtons.isNotEmpty()) {
+            builder = builder.addRow(*navButtons.toTypedArray())
+        }
+        
+        builder = builder.addRow(CallbackButton("back_to_menu", "В меню"))
+        
+        return builder
+    }
 
     // Дневник - календарь
     fun diaryCalendar(year: Int = LocalDate.now().year, month: Int = LocalDate.now().monthValue): InlineKeyboardBuilder {
