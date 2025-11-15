@@ -33,7 +33,7 @@ services:
     container_name: streetimpact_bot
     restart: always
     environment:
-      BOT_TOKEN: ${BOT_TOKEN}
+      BOT_TOKEN: <сдесь должен быть токен бота>
       DB_URL: jdbc:postgresql://db:5432/bot
       DB_USER: user
       DB_PASSWORD: 123
