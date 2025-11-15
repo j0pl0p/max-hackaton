@@ -21,31 +21,26 @@ class StatisticsHandler(
     override suspend fun canHandle(update: Update, currentState: BotState): Boolean {
         val payload = UpdateUtils.getPayload(update)
         if (payload == "back_to_menu") return false
-        return currentState == BotState.STATISTICS
+        return currentState == BotState.STATISTICS || payload == "statistics_awards" || currentState == BotState.AWARDS
     }
     
     override suspend fun handle(update: Update, currentState: BotState): HandlerResult {
         val userId = UpdateUtils.getUserId(update) ?: return HandlerResult("Ошибка: не удалось определить пользователя")
+        val payload = UpdateUtils.getPayload(update)
+        
+        // Обработка кнопки "Мои награды"
+        if (payload == "statistics_awards" || currentState == BotState.AWARDS) {
+            return HandlerResult(
+                text = BotTexts.NO_AWARDS_MESSAGE,
+                keyboard = Keyboards.awards(),
+                newState = BotState.AWARDS
+            )
+        }
         
         // Получаем статистику через UseCase
         val statistics = getStatisticsUseCase.execute(userId)
         
-        // Получаем достижения через UseCase
-        val achievements = getAchievementsUseCase.execute(userId)
-        
-        val statisticsText = buildString {
-            appendLine(BotTexts.getStatistics(statistics.lastSmokingDay, statistics.totalDaysWithoutSmoking))
-            if (achievements.isNotEmpty()) {
-                appendLine()
-                appendLine(BotTexts.ACHIEVEMENTS_TITLE)
-                achievements.forEach { achievement ->
-                    appendLine("• $achievement")
-                }
-            } else {
-                appendLine()
-                appendLine("Пока нет достижений")
-            }
-        }
+        val statisticsText = BotTexts.getStatistics(statistics.currentStreak, statistics.maxStreak)
         
         return HandlerResult(
             text = statisticsText,

@@ -11,7 +11,8 @@ enum class BotState(val id: Long) {
     DIARY_ENTER_NOTE(8),
     DIARY_VIEW_NOTE(9),
     RELAPSE(10),
-    QUIT_START(11);
+    QUIT_START(11),
+    AWARDS(12);
 
     companion object {
         fun fromId(id: Long): BotState {

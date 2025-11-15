@@ -16,6 +16,14 @@ class RelapseUseCase(
     suspend fun execute(userMaxId: Long): Boolean {
         val user = usersRepository.getUserByMaxId(userMaxId) ?: return false
         
+        // Обновляем maxStreak перед сбросом
+        if (user.lastStart != null && user.isQuitting) {
+            val currentStreak = java.time.temporal.ChronoUnit.DAYS.between(user.lastStart, java.time.LocalDate.now()).toInt().coerceAtLeast(0)
+            if (currentStreak > user.maxStreak) {
+                user.maxStreak = currentStreak
+            }
+        }
+        
         // Обнуляем стрик и останавливаем процесс отказа
         user.isQuitting = false
         user.lastStart = null

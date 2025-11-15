@@ -95,6 +95,7 @@ fun UpdateBuilder<*>.fillWith(user: User) {
     this[UsersTable.isQuitting] = user.isQuitting
     this[UsersTable.lastStart] = user.lastStart
     this[UsersTable.averageMonthlyExpenses] = user.averageMonthlyExpenses
+    this[UsersTable.maxStreak] = user.maxStreak
 }
 
 fun ResultRow.toUser() = User(
@@ -106,5 +107,6 @@ fun ResultRow.toUser() = User(
     lastActivity = this[UsersTable.lastActivity] ?: throw IllegalStateException("LastActivity cannot be null"),
     isQuitting = this[UsersTable.isQuitting],
     lastStart = this[UsersTable.lastStart],
-    averageMonthlyExpenses = this[UsersTable.averageMonthlyExpenses]
+    averageMonthlyExpenses = this[UsersTable.averageMonthlyExpenses],
+    maxStreak = this[UsersTable.maxStreak]
 )

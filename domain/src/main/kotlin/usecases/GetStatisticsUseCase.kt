@@ -9,9 +9,8 @@ import java.util.Date
  * UseCase для получения статистики пользователя
  */
 data class UserStatistics(
-    val lastSmokingDay: Int, // Дней с последнего дня курения
-    val totalDaysWithoutSmoking: Int, // Всего дней без курения
-    val currentStreak: Int, // Текущий стрик (дни подряд без курения)
+    val currentStreak: Int, // Текущий стрик (дни без курения с lastStart)
+    val maxStreak: Int, // Максимальный стрик за всю историю
     val totalRelapses: Int // Количество срывов
 )
 
@@ -25,58 +24,34 @@ class GetStatisticsUseCase(
      * @return UserStatistics
      */
     suspend fun execute(userMaxId: Long): UserStatistics {
-        val user = usersRepository.getUserByMaxId(userMaxId) ?: return UserStatistics(0, 0, 0, 0)
+        val user = usersRepository.getUserByMaxId(userMaxId) ?: return UserStatistics(0, 0, 0)
         
-        // Получаем все записи пользователя
-        val notes = notesRepository.getNotesByUserId(user.id)
-        
-        if (notes.isEmpty()) {
-            // Если нет записей, но пользователь начал процесс отказа
-            val lastStart = user.lastStart
-            if (lastStart != null) {
-                val daysSinceStart = calculateDaysBetween(lastStart, Date())
-                return UserStatistics(
-                    lastSmokingDay = daysSinceStart,
-                    totalDaysWithoutSmoking = daysSinceStart,
-                    currentStreak = daysSinceStart,
-                    totalRelapses = 0
-                )
-            }
-            return UserStatistics(0, 0, 0, 0)
+        // Текущий стрик - дни с момента lastStart
+        val currentStreak = if (user.lastStart != null && user.isQuitting) {
+            calculateDaysBetween(user.lastStart!!, java.time.LocalDate.now())
+        } else {
+            0
         }
         
-        val sortedNotes = notes.sortedBy { it.date }
-        val firstNote = sortedNotes.first()
-        val lastNote = sortedNotes.last()
+        // Обновляем максимальный стрик если текущий больше
+        if (currentStreak > user.maxStreak) {
+            user.maxStreak = currentStreak
+            usersRepository.updateUser(user)
+        }
         
-        // Дней с последнего дня курения (с момента последней записи)
-        val lastSmokingDay = calculateDaysBetween(lastNote.date, Date())
-        
-        // Всего дней без курения (от первой записи до последней)
-        val totalDaysWithoutSmoking = calculateDaysBetween(firstNote.date, lastNote.date)
-        
-        // Текущий стрик - дни с последней записи
-        val currentStreak = lastSmokingDay
-        
-        // Количество срывов - считаем по количеству записей с failed = true
-        val totalRelapses = sortedNotes.count { it.failed == true }
+        // Получаем все записи пользователя для подсчета срывов
+        val notes = notesRepository.getNotesByUserId(user.id)
+        val totalRelapses = notes.count { it.failed == true }
         
         return UserStatistics(
-            lastSmokingDay = lastSmokingDay,
-            totalDaysWithoutSmoking = totalDaysWithoutSmoking,
             currentStreak = currentStreak,
+            maxStreak = user.maxStreak,
             totalRelapses = totalRelapses
         )
     }
     
-    private fun calculateDaysBetween(date1: Date, date2: Date): Int {
-        val diff = date2.time - date1.time
-        return (diff / (1000 * 60 * 60 * 24)).toInt().coerceAtLeast(0)
-    }
-    
-    private fun calculateDaysBetween(date1: java.time.LocalDate, date2: Date): Int {
-        val localDate2 = date2.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate()
-        return java.time.temporal.ChronoUnit.DAYS.between(date1, localDate2).toInt().coerceAtLeast(0)
+    private fun calculateDaysBetween(date1: java.time.LocalDate, date2: java.time.LocalDate): Int {
+        return java.time.temporal.ChronoUnit.DAYS.between(date1, date2).toInt().coerceAtLeast(0)
     }
 }
 

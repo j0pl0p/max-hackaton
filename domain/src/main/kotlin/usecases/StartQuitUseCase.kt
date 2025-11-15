@@ -17,6 +17,9 @@ class StartQuitUseCase(
     suspend fun execute(userMaxId: Long): Boolean {
         val user = usersRepository.getUserByMaxId(userMaxId) ?: return false
         
+        // Если уже бросает, не начинаем заново
+        if (user.isQuitting) return false
+        
         // Устанавливаем флаг начала процесса отказа
         user.isQuitting = true
         user.lastStart = java.time.LocalDate.now()

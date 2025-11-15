@@ -13,4 +13,5 @@ data class User(
     var isQuitting: Boolean,
     var lastStart: LocalDate?,
     var averageMonthlyExpenses: Long,
+    var maxStreak: Int
 )

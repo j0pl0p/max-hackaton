@@ -15,6 +15,7 @@ object UsersTable : Table("users") {
     val isQuitting = bool("is_quitting")
     val lastStart = date("last_start").nullable()
     val averageMonthlyExpenses = long("average_monthly_expenses")
+    val maxStreak = integer("max_streak").default(0)
 
     override val primaryKey = PrimaryKey(id)
 }

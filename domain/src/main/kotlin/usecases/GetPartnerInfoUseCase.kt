@@ -8,8 +8,7 @@ import java.util.Date
  */
 data class PartnerInfo(
     val name: String,
-    val daysWithoutSmoking: Int,
-    val totalDaysWithoutSmoking: Int
+    val daysWithoutSmoking: Int
 )
 
 class GetPartnerInfoUseCase(
@@ -30,46 +29,22 @@ class GetPartnerInfoUseCase(
         // Получаем напарника по его внутреннему ID
         val partner = usersRepository.getUserById(partnerId) ?: return null
         
-        // Вычисляем дни без курения
-        val daysWithoutSmoking = calculateDaysWithoutSmoking(partner)
-        val totalDaysWithoutSmoking = calculateTotalDaysWithoutSmoking(partner)
+        // Вычисляем стрик напарника (дни с lastStart)
+        val daysWithoutSmoking = if (partner.lastStart != null && partner.isQuitting) {
+            java.time.temporal.ChronoUnit.DAYS.between(partner.lastStart, java.time.LocalDate.now()).toInt().coerceAtLeast(0)
+        } else {
+            0
+        }
         
-        // Имя напарника - используем maxId как идентификатор, так как имени нет в модели
+        // Имя напарника
         val partnerName = "Напарник #${partner.maxId}"
         
         return PartnerInfo(
             name = partnerName,
-            daysWithoutSmoking = daysWithoutSmoking,
-            totalDaysWithoutSmoking = totalDaysWithoutSmoking
+            daysWithoutSmoking = daysWithoutSmoking
         )
     }
     
-    /**
-     * Вычислить текущий стрик (дни без курения с последнего срыва)
-     */
-    private fun calculateDaysWithoutSmoking(user: org.white_powerbank.models.User): Int {
-        val lastStart = user.lastStart ?: return 0
-        val now = java.time.LocalDate.now()
-        return java.time.temporal.ChronoUnit.DAYS.between(lastStart, now).toInt()
-    }
-    
-    /**
-     * Вычислить общее количество дней без курения
-     */
-    private fun calculateTotalDaysWithoutSmoking(user: org.white_powerbank.models.User): Int {
-        // Получаем все записи пользователя
-        val notes = notesRepository.getNotesByUserId(user.id)
-        
-        // Считаем дни между записями
-        // Упрощенная логика: считаем дни с первой записи до последней
-        if (notes.isEmpty()) return 0
-        
-        val sortedNotes = notes.sortedBy { it.date }
-        val firstNote = sortedNotes.first()
-        val lastNote = sortedNotes.last()
-        
-        val diff = lastNote.date.time - firstNote.date.time
-        return (diff / (1000 * 60 * 60 * 24)).toInt()
-    }
+
 }
 
