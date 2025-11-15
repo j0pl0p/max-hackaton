@@ -1,6 +1,9 @@
-# StreetImpact Bot
+# NosmokeBot
 
 Бот для помощи в отказе от курения с системой напарников и дневником.
+
+## requirements.txt
+Поскольку наш проект написан на Kotlin, вместо `requirements.txt` мы используем gradle-файл.
 
 ## Архитектура
 
