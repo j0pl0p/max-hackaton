@@ -34,9 +34,9 @@ services:
     restart: always
     environment:
       BOT_TOKEN: ${BOT_TOKEN}
-      DB_URL: ${DB_URL:-jdbc:postgresql://db:5432/bot}
-      DB_USER: ${DB_USER:-user}
-      DB_PASSWORD: ${DB_PASSWORD:-123}
+      DB_URL: ${jdbc:postgresql://db:5432/bot}
+      DB_USER: ${user}
+      DB_PASSWORD: ${123}
     depends_on:
       - db
 
