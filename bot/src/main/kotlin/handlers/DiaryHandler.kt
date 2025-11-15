@@ -47,6 +47,14 @@ class DiaryHandler(
     }
     
     private suspend fun handleCalendar(payload: String?, userId: Long): HandlerResult {
+        if (payload == "diary_future_date") {
+            return HandlerResult(
+                text = "Нельзя создавать заметки на будущие даты.",
+                keyboard = Keyboards.diaryCalendar(),
+                newState = BotState.DIARY_CALENDAR
+            )
+        }
+        
         if (payload?.startsWith("diary_calendar_date:") == true) {
             val dateStr = payload.removePrefix("diary_calendar_date:")
             val dateParts = dateStr.split("-")

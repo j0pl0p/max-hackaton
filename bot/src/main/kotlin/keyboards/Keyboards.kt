@@ -100,6 +100,7 @@ object Keyboards {
         val yearMonth = YearMonth.of(year, month)
         val daysInMonth = yearMonth.lengthOfMonth()
         val monthName = yearMonth.month.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale("ru"))
+        val today = LocalDate.now()
         
         var builder = InlineKeyboardBuilder.empty()
         
@@ -109,8 +110,18 @@ object Keyboards {
         // Дни месяца по 7 в ряд
         var currentRow = mutableListOf<CallbackButton>()
         for (day in 1..daysInMonth) {
+            val currentDate = LocalDate.of(year, month, day)
             val dateStr = String.format("%04d-%02d-%02d", year, month, day)
-            currentRow.add(CallbackButton("diary_calendar_date:$dateStr", day.toString()))
+            
+            // Проверяем, не является ли дата будущей
+            if (currentDate.isAfter(today)) {
+                // Для будущих дат создаем неактивную кнопку
+                currentRow.add(CallbackButton("diary_future_date", day.toString()))
+            } else {
+                // Добавляем смайлик для сегодняшней даты
+                val buttonText = if (currentDate == today) "🚬 $day" else day.toString()
+                currentRow.add(CallbackButton("diary_calendar_date:$dateStr", buttonText))
+            }
             
             if (currentRow.size == 7 || day == daysInMonth) {
                 builder = builder.addRow(*currentRow.toTypedArray())

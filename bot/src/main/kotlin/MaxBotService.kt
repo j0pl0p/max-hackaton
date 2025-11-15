@@ -13,6 +13,7 @@ import ru.max.bot.builders.attachments.AttachmentsBuilder
 import ru.max.botapi.exceptions.ClientException
 import ru.max.botapi.model.MessageCreatedUpdate
 import ru.max.botapi.model.MessageCallbackUpdate
+import ru.max.botapi.model.BotStartedUpdate
 import ru.max.botapi.model.Update
 import ru.max.botapi.queries.SendMessageQuery
 import kotlinx.coroutines.CoroutineScope
@@ -102,6 +103,15 @@ class MaxBotService(
         }
         
         val chatId = update.message?.recipient?.chatId ?: return
+        processUpdate(update, chatId)
+    }
+
+    @UpdateHandler
+    @Throws(ClientException::class)
+    fun onBotStarted(update: BotStartedUpdate) {
+        println("Received bot started update: $update")
+        
+        val chatId = update.chatId ?: return
         processUpdate(update, chatId)
     }
 

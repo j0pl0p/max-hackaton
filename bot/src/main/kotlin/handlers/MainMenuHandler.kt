@@ -9,6 +9,7 @@ import org.white_powerbank.repositories.UsersRepository
 import ru.max.botapi.model.Update
 import ru.max.botapi.model.MessageCreatedUpdate
 import ru.max.botapi.model.MessageCallbackUpdate
+import ru.max.botapi.model.BotStartedUpdate
 
 /**
  * Обработчик главного меню
@@ -23,6 +24,9 @@ class MainMenuHandler(
     override suspend fun canHandle(update: Update, currentState: BotState): Boolean {
         val text = UpdateUtils.getText(update)?.trim()?.lowercase()
         val payload = UpdateUtils.getPayload(update)
+        
+        // Handle bot_started event
+        if (update is BotStartedUpdate) return true
         
         // Don't handle main_ payloads if already in target state
         if (payload == "main_partner" && currentState == BotState.PARTNER_MENU) return false

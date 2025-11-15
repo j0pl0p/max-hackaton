@@ -8,6 +8,7 @@ import org.white_powerbank.models.User
 import ru.max.botapi.model.Update
 import ru.max.botapi.model.MessageCreatedUpdate
 import ru.max.botapi.model.MessageCallbackUpdate
+import ru.max.botapi.model.BotStartedUpdate
 import java.time.LocalDateTime
 
 class MessageRouter(
@@ -16,11 +17,7 @@ class MessageRouter(
     private val handlers: List<Handler>
 ) {
     suspend fun route(update: Update): HandlerResult {
-        val userId = when (update) {
-            is MessageCreatedUpdate -> update.message?.sender?.userId
-            is MessageCallbackUpdate -> update.callback?.user?.userId
-            else -> null
-        } ?: return HandlerResult("Ошибка: не удалось определить пользователя")
+        val userId = UpdateUtils.getUserId(update) ?: return HandlerResult("Ошибка: не удалось определить пользователя")
         
         ensureUserExists(userId)
         return processHandlers(update, userId)
