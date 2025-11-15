@@ -1,19 +1,21 @@
 package org.white_powerbank.models
 
 enum class BotState(val id: Long) {
-    MAIN_MENU(1),
-    PARTNER_MENU(2),
-    STATISTICS(3),
-    DIARY_CALENDAR(4),
-    DIARY_SELECT_DATE(5),
-    DIARY_ENTER_PULL_LEVEL(6),
-    DIARY_ENTER_NOTE(7),
-    RELAPSE(8),
-    QUIT_START(9);
+    WELCOME(1),
+    MAIN_MENU(2),
+    PARTNER_MENU(3),
+    STATISTICS(4),
+    DIARY_CALENDAR(5),
+    DIARY_SELECT_DATE(6),
+    DIARY_ENTER_PULL_LEVEL(7),
+    DIARY_ENTER_NOTE(8),
+    DIARY_VIEW_NOTE(9),
+    RELAPSE(10),
+    QUIT_START(11);
 
     companion object {
         fun fromId(id: Long): BotState {
-            return entries.firstOrNull { it.id == id } ?: MAIN_MENU
+            return entries.firstOrNull { it.id == id } ?: WELCOME
         }
     }
 }

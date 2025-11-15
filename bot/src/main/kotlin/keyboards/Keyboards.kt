@@ -7,12 +7,17 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 object Keyboards {
-    // Главное меню
-    fun mainMenu(): InlineKeyboardBuilder {
+    // Приветственное меню (когда не бросает)
+    fun welcomeMenu(): InlineKeyboardBuilder {
         return InlineKeyboardBuilder.empty()
             .addRow(
                 CallbackButton("main_quit", "Бросить вейпить")
             )
+    }
+    
+    // Главное меню (когда бросает)
+    fun mainMenu(): InlineKeyboardBuilder {
+        return InlineKeyboardBuilder.empty()
             .addRow(
                 CallbackButton("main_partner", "Напарник")
             )
@@ -86,6 +91,20 @@ object Keyboards {
         return InlineKeyboardBuilder.empty()
             .addRow(CallbackButton("relapse_diary", "Заметка в дневник"))
             .addRow(CallbackButton("relapse_restart", "Начать заново"))
+            .addRow(CallbackButton("back_to_menu", "В меню"))
+    }
+
+    // Просмотр заметки
+    fun diaryViewNote(): InlineKeyboardBuilder {
+        return InlineKeyboardBuilder.empty()
+            .addRow(CallbackButton("diary_edit_note", "Редактировать заметку"))
+            .addRow(CallbackButton("back_to_menu", "В меню"))
+    }
+    
+    // Нет заметки - предложение добавить
+    fun diaryNoNote(): InlineKeyboardBuilder {
+        return InlineKeyboardBuilder.empty()
+            .addRow(CallbackButton("diary_add_note", "Добавить заметку"))
             .addRow(CallbackButton("back_to_menu", "В меню"))
     }
 

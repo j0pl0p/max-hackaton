@@ -32,7 +32,7 @@ class MainMenuHandler(
         
         return text == "/start" || text == "start" || payload == "back_to_menu" ||
                payload?.startsWith("main_") == true ||
-               (currentState == BotState.MAIN_MENU && payload == null && text == null)
+               (currentState in listOf(BotState.WELCOME, BotState.MAIN_MENU) && payload == null && text == null)
     }
     
     override suspend fun handle(update: Update, currentState: BotState): HandlerResult {
@@ -41,11 +41,12 @@ class MainMenuHandler(
         
         // Получаем пользователя для проверки состояния
         val user = usersRepository.getUserByMaxId(userId)
+        val isQuitting = user?.isQuitting == true
         
         // Обработка кнопок главного меню
         return when (payload) {
             "main_quit" -> {
-                if (user?.isQuitting == true) {
+                if (isQuitting) {
                     HandlerResult(
                         text = "Вы уже в процессе отказа от курения!",
                         keyboard = Keyboards.mainMenu(),
@@ -55,8 +56,8 @@ class MainMenuHandler(
                     val started = startQuitUseCase.execute(userId)
                     HandlerResult(
                         text = if (started) "Начинаем процесс отказа от курения..." else "Не удалось начать процесс отказа.",
-                        keyboard = Keyboards.backToMenu(),
-                        newState = BotState.QUIT_START
+                        keyboard = Keyboards.mainMenu(),
+                        newState = BotState.MAIN_MENU
                     )
                 }
             }
@@ -64,22 +65,32 @@ class MainMenuHandler(
             "main_diary" -> HandlerResult("", null, BotState.DIARY_CALENDAR)
             "main_statistics" -> HandlerResult("", null, BotState.STATISTICS)
             "main_relapse" -> {
-                if (user?.isQuitting == false) {
+                if (!isQuitting) {
                     HandlerResult(
                         text = "Вы не находитесь в процессе отказа от курения.",
-                        keyboard = Keyboards.mainMenu(),
-                        newState = BotState.MAIN_MENU
+                        keyboard = Keyboards.welcomeMenu(),
+                        newState = BotState.WELCOME
                     )
                 } else {
                     relapseUseCase.execute(userId)
                     HandlerResult("", null, BotState.RELAPSE)
                 }
             }
-            else -> HandlerResult(
-                text = BotTexts.WELCOME_MESSAGE,
-                keyboard = Keyboards.mainMenu(),
-                newState = BotState.MAIN_MENU
-            )
+            else -> {
+                if (isQuitting) {
+                    HandlerResult(
+                        text = BotTexts.WELCOME_MESSAGE,
+                        keyboard = Keyboards.mainMenu(),
+                        newState = BotState.MAIN_MENU
+                    )
+                } else {
+                    HandlerResult(
+                        text = BotTexts.HELLO_MESSAGE,
+                        keyboard = Keyboards.welcomeMenu(),
+                        newState = BotState.WELCOME
+                    )
+                }
+            }
         }
     }
 }

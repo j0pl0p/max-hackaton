@@ -59,8 +59,7 @@ class GetStatisticsUseCase(
         val currentStreak = lastSmokingDay
         
         // Количество срывов - считаем по количеству записей с failed = true
-        // по записям, где явно указан срыв
-        val totalRelapses = sortedNotes.count { it.failed  }
+        val totalRelapses = sortedNotes.count { it.failed == true }
         
         return UserStatistics(
             lastSmokingDay = lastSmokingDay,

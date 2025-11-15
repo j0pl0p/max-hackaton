@@ -37,14 +37,14 @@ class MaxBotService(
     private val startQuitUseCase = StartQuitUseCase(userRepository)
     private val saveNoteUseCase = SaveNoteUseCase(notesRepository)
     private val restartQuitUseCase = RestartQuitUseCase(userRepository)
-    private val diaryEntryDataUseCase = DiaryEntryDataUseCase(notesRepository, userRepository)
+    private val noteUseCase = NoteUseCase(notesRepository, userRepository)
 
     private val router: MessageRouter by lazy {
         val handlers = listOf<Handler>(
             MainMenuHandler(stateManager, startQuitUseCase, relapseUseCase, userRepository),
             PartnerHandler(stateManager, userRepository, searchPairUseCase, changePartnerUseCase, getPartnerInfoUseCase),
             StatisticsHandler(stateManager, getStatisticsUseCase, getAchievementsUseCase),
-            DiaryHandler(stateManager, userRepository, saveNoteUseCase, diaryEntryDataUseCase),
+            DiaryHandler(stateManager, userRepository, noteUseCase),
             RelapseHandler(stateManager, restartQuitUseCase)
         )
         MessageRouter(stateManager, userRepository, handlers)

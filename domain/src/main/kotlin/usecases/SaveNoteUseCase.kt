@@ -33,16 +33,16 @@ class SaveNoteUseCase(
             null
         }
         
-        val note = if (existingNote != null) {
+        if (existingNote != null) {
             // Обновляем существующую запись
-            existingNote.apply {
-                this.pullLevel = pullLevel
-                this.body = body
-                this.failed = failed
-            }
+            existingNote.pullLevel = pullLevel
+            existingNote.body = body
+            existingNote.failed = failed
+            notesRepository.updateNote(existingNote)
+            return existingNote
         } else {
             // Создаем новую запись
-            Note(
+            val newNote = Note(
                 id = 0,
                 userId = userId,
                 date = date,
@@ -50,15 +50,10 @@ class SaveNoteUseCase(
                 failed = failed,
                 body = body
             )
+            val newId = notesRepository.addNote(newNote)
+            newNote.id = newId
+            return newNote
         }
-        
-        if (existingNote != null) {
-            notesRepository.updateNote(note)
-        } else {
-            notesRepository.addNote(note)
-        }
-        
-        return note
     }
 }
 

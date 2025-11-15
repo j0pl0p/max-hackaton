@@ -31,7 +31,7 @@ class MessageRouter(
             usersRepository.addUser(User(
                 id = 0,
                 maxId = userId,
-                state = BotState.MAIN_MENU,
+                state = BotState.WELCOME,
                 partnerId = null,
                 partnerSearchStatus = PartnerSearchStatus.INACTIVE,
                 lastActivity = LocalDateTime.now(),
@@ -43,7 +43,7 @@ class MessageRouter(
     }
 
     private suspend fun processHandlers(update: Update, userId: Long): HandlerResult {
-        var currentState = stateManager.getState(userId) ?: BotState.MAIN_MENU
+        var currentState = stateManager.getState(userId) ?: BotState.WELCOME
         var lastResult: HandlerResult? = null
 
         var iterations = 0
@@ -85,8 +85,8 @@ class MessageRouter(
 
         return lastResult ?: HandlerResult(
             text = "Неизвестная команда. Возвращаюсь в главное меню.",
-            keyboard = org.white_powerbank.bot.keyboards.Keyboards.mainMenu(),
-            newState = BotState.MAIN_MENU
+            keyboard = org.white_powerbank.bot.keyboards.Keyboards.welcomeMenu(),
+            newState = BotState.WELCOME
         )
     }
 }
