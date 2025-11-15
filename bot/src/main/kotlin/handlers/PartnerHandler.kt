@@ -54,7 +54,7 @@ class PartnerHandler(
                     val partnerInfo = getPartnerInfoUseCase.execute(userId)
                     if (partnerInfo != null) {
                         return HandlerResult(
-                            text = "Напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking)}",
+                            text = "Напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking, partnerInfo.maxId)}",
                             keyboard = Keyboards.partnerWithPartner(),
                             newState = BotState.PARTNER_MENU
                         )
@@ -89,7 +89,7 @@ class PartnerHandler(
                     val partnerInfo = getPartnerInfoUseCase.execute(userId)
                     if (partnerInfo != null) {
                         return HandlerResult(
-                            text = "🎉 Новый напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking)}",
+                            text = "🎉 Новый напарник найден!\n\n${BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking, partnerInfo.maxId)}",
                             keyboard = Keyboards.partnerWithPartner(),
                             newState = BotState.PARTNER_MENU
                         )
@@ -113,7 +113,7 @@ class PartnerHandler(
             
             if (partnerInfo != null) {
                 HandlerResult(
-                    text = BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking),
+                    text = BotTexts.getPartnerInfo(partnerInfo.name, partnerInfo.daysWithoutSmoking, partnerInfo.maxId),
                     keyboard = Keyboards.partnerWithPartner(),
                     newState = BotState.PARTNER_MENU
                 )
