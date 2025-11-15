@@ -133,10 +133,15 @@ class DiaryHandler(
     
     private suspend fun handleNote(text: String?, payload: String?, userId: Long): HandlerResult {
         if (payload == "back_to_menu") {
+            val user = usersRepository.getUserByMaxId(userId)
+            user?.let {
+                it.tempNoteId = null
+                usersRepository.updateUser(it)
+            }
             return HandlerResult("", null, BotState.MAIN_MENU)
         }
         
-        if (text != null && text.isNotBlank() && !text.startsWith("/") && payload == null) {
+        if (text != null && text.isNotBlank() && !text.startsWith("/")) {
             val user = usersRepository.getUserByMaxId(userId)
             val noteId = user?.tempNoteId
             
@@ -157,7 +162,7 @@ class DiaryHandler(
                     return HandlerResult(
                         text = "Ошибка: ${e.message}",
                         keyboard = Keyboards.backToMenu(),
-                        newState = BotState.DIARY_ENTER_NOTE
+                        newState = BotState.MAIN_MENU
                     )
                 }
             }
