@@ -18,7 +18,8 @@ val appModule = module {
     single { SearchPairUseCase(get(), get()) }
     single { ChangePartnerUseCase(get(), get()) }
     single { GetPartnerInfoUseCase(get(), get()) }
-    single { GetStatisticsUseCase(get(), get()) }
+    single { CheckAwardsUseCase(get(), get(), get()) }
+    single { GetStatisticsUseCase(get(), get(), get()) }
     single { GetAchievementsUseCase(get(), get()) }
     single { StartQuitUseCase(get()) }
     single { SaveNoteUseCase(get()) }
@@ -29,5 +30,5 @@ val appModule = module {
 
     // Bot layer
     single { UserStateManager(get()) }
-    single { MaxBotService(getProperty("bot.token"), get(), get(), get(), get(), get()) }
+    single { MaxBotService(getProperty("bot.token"), get(), get(), get(), get(), get(), get()) }
 }

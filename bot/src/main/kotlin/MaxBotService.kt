@@ -25,6 +25,7 @@ class MaxBotService(
     private val userRepository: UsersRepository,
     private val notesRepository: NotesRepository,
     private val usersAwardsRepository: UsersAwardsRepository,
+    private val awardsRepository: org.white_powerbank.repositories.AwardsRepository,
     private val relapseUseCase: RelapseUseCase
 ) : LongPollingBot(token) {
 
@@ -32,7 +33,8 @@ class MaxBotService(
     private val searchPairUseCase = SearchPairUseCase(userRepository, matchPartnersUseCase)
     private val changePartnerUseCase = ChangePartnerUseCase(userRepository, matchPartnersUseCase)
     private val getPartnerInfoUseCase = GetPartnerInfoUseCase(userRepository, notesRepository)
-    private val getStatisticsUseCase = GetStatisticsUseCase(userRepository, notesRepository)
+    private val checkAwardsUseCase = CheckAwardsUseCase(userRepository, awardsRepository, usersAwardsRepository)
+    private val getStatisticsUseCase = GetStatisticsUseCase(userRepository, notesRepository, checkAwardsUseCase)
     private val getAchievementsUseCase = GetAchievementsUseCase(usersAwardsRepository, userRepository)
     private val startQuitUseCase = StartQuitUseCase(userRepository)
     private val saveNoteUseCase = SaveNoteUseCase(notesRepository)

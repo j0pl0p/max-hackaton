@@ -32,6 +32,9 @@ object DatabaseFactory {
                     UsersTable, NotesTable, AwardsTable, UsersAwardsTable
                 )
             }
+            
+            // Инициализируем награды
+            org.white_powerbank.db.InitialData.insertAwards()
         } catch (e: Exception) {
             throw RuntimeException("Failed to initialize database: ${e.message}", e)
         }
