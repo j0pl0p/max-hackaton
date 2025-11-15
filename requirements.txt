@@ -1,0 +1,30 @@
+# Системные требования
+
+## Для запуска через Docker (рекомендуется):
+- Docker 20.10+
+- Docker Compose 2.0+
+
+## Для локального запуска:
+- JDK 17+
+- Gradle 8.5+ (или использовать ./gradlew)
+- Docker (для PostgreSQL)
+
+## Зависимости проекта (управляются Gradle):
+- Kotlin 1.9+
+- Kotlinx Coroutines
+- MAX Bot SDK (max-bot-sdk-java:081fec8fd2)
+- Koin DI 3.5.3
+- Exposed ORM 0.44.1
+- PostgreSQL Driver 42.7.7
+- HikariCP 5.0.1
+- Typesafe Config 1.4.2
+- Logback 1.4.11
+
+## База данных:
+- PostgreSQL 15+
+
+## Переменные окружения:
+- BOT_TOKEN - токен MAX бота (обязательно)
+- DB_URL - URL подключения к PostgreSQL (по умолчанию: jdbc:postgresql://localhost:5432/bot)
+- DB_USER - пользователь БД (по умолчанию: user)
+- DB_PASSWORD - пароль БД (по умолчанию: 123)

@@ -34,6 +34,14 @@ application {
     mainClass = "org.white_powerbank.app.AppKt"
 }
 
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "org.white_powerbank.app.AppKt"
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+}
+
 tasks.test {
     useJUnitPlatform()
 }
