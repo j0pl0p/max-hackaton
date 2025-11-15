@@ -71,13 +71,15 @@ class UsersRepositoryImpl : UsersRepository {
             (UsersTable.id eq partnerId) and 
             (UsersTable.partnerId eq userId)
         }.count() > 0
-        
-        if (!user1Valid || !user2Valid) return@transaction false
-        
+
+        // в любом случае отчищаем первого пользователя
         UsersTable.update({ UsersTable.id eq userId }) {
             it[UsersTable.partnerId] = null
             it[partnerSearchStatus] = PartnerSearchStatus.ACTIVE.statusId
         }
+        
+        if (!user2Valid) return@transaction false
+
         UsersTable.update({ UsersTable.id eq partnerId }) {
             it[UsersTable.partnerId] = null
             it[partnerSearchStatus] = PartnerSearchStatus.INACTIVE.statusId

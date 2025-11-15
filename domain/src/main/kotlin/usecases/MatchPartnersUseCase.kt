@@ -40,9 +40,24 @@ class MatchPartnersUseCase(
         
         if (partner != null) {
             // Нашли партнера - связываем их атомарно
+            // matchPartners проверит условия еще раз внутри транзакции
             return if (usersRepository.matchPartners(user.id, partner.id)) {
                 partner.maxId
-            } else null
+            } else {
+                // Race condition: партнер уже занят, попробуем следующего
+                val otherPartners = searchingUsers.filter { 
+                    it.id != user.id && it.id != partner.id &&
+                    it.partnerId == null && 
+                    it.partnerSearchStatus == PartnerSearchStatus.ACTIVE 
+                }
+                
+                for (candidate in otherPartners) {
+                    if (usersRepository.matchPartners(user.id, candidate.id)) {
+                        return candidate.maxId
+                    }
+                }
+                null
+            }
         }
         
         // Партнер не найден - статус остается ACTIVE, чтобы другие могли найти этого пользователя
