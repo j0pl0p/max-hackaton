@@ -71,6 +71,17 @@ class MaxBotService(
     @Throws(ClientException::class)
     fun onMessageCreated(update: MessageCreatedUpdate) {
         println("Received message update: $update")
+        
+        // Логируем chat_type
+        val chatType = update.message?.recipient?.chatType
+        println("Chat type: $chatType")
+        
+        // Обрабатываем только dialog, игнорируем беседы
+        if (chatType != ru.max.botapi.model.ChatType.DIALOG) {
+            println("Ignoring message from non-dialog chat: $chatType")
+            return
+        }
+        
         val chatId = update.message?.recipient?.chatId ?: return
         processUpdate(update, chatId)
     }
@@ -79,6 +90,17 @@ class MaxBotService(
     @Throws(ClientException::class)
     fun onMessageCallback(update: MessageCallbackUpdate) {
         println("Received callback update: $update")
+        
+        // Логируем chat_type
+        val chatType = update.message?.recipient?.chatType
+        println("Chat type: $chatType")
+        
+        // Обрабатываем только dialog, игнорируем беседы
+        if (chatType != ru.max.botapi.model.ChatType.DIALOG) {
+            println("Ignoring callback from non-dialog chat: $chatType")
+            return
+        }
+        
         val chatId = update.message?.recipient?.chatId ?: return
         processUpdate(update, chatId)
     }

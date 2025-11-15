@@ -41,7 +41,7 @@ class GetStatisticsUseCase(
         }
         
         // Проверяем и выдаем новые награды
-        checkAwardsUseCase.execute(userMaxId, currentStreak)
+        checkAwardsUseCase.execute(userMaxId)
         
         // Получаем все записи пользователя для подсчета срывов
         val notes = notesRepository.getNotesByUserId(user.id)

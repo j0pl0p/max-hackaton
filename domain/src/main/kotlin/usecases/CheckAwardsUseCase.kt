@@ -21,12 +21,11 @@ class CheckAwardsUseCase(
     )
     
     /**
-     * Проверить и выдать награды пользователю на основе его текущего стрика
+     * Проверить и выдать награды пользователю на основе его максимального стрика
      * @param userMaxId ID пользователя в MAX
-     * @param currentStreak текущий стрик пользователя
      * @return список новых наград (названия)
      */
-    suspend fun execute(userMaxId: Long, currentStreak: Int): List<String> {
+    suspend fun execute(userMaxId: Long): List<String> {
         val user = usersRepository.getUserByMaxId(userMaxId) ?: return emptyList()
         
         // Получаем уже имеющиеся награды пользователя
@@ -35,9 +34,9 @@ class CheckAwardsUseCase(
         
         val newAwards = mutableListOf<String>()
         
-        // Проверяем каждый порог
+        // Проверяем каждый порог по maxStreak
         for ((awardId, threshold) in awardThresholds) {
-            if (currentStreak >= threshold && !existingAwardIds.contains(awardId)) {
+            if (user.maxStreak >= threshold && !existingAwardIds.contains(awardId)) {
                 // Пользователь достиг порога и еще не имеет эту награду
                 try {
                     usersAwardsRepository.addAwardToUser(user.id, awardId)

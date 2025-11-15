@@ -11,7 +11,7 @@ object Keyboards {
     fun welcomeMenu(): InlineKeyboardBuilder {
         return InlineKeyboardBuilder.empty()
             .addRow(
-                CallbackButton("main_quit", "Бросить вейпить")
+                CallbackButton("main_quit", "Бросить курить")
             )
     }
     
