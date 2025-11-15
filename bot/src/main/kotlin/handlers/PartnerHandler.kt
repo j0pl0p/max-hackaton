@@ -78,7 +78,7 @@ class PartnerHandler(
                 // Проверяем наличие ссылки профиля
                 if (user?.profileLink.isNullOrBlank()) {
                     return HandlerResult(
-                        text = "Для поиска напарника нужна ссылка на ваш профиль.\n\nОтправьте ссылку на ваш профиль в MAX:",
+                        text = "Для поиска напарника нужна ссылка на ваш профиль.\n\nОтправьте ссылку на ваш профиль в MAX:\n\nНайти ссылку можно в приложении макс -> контакты -> плюс -> пригласить по ссылке",
                         keyboard = Keyboards.backToMenu(),
                         newState = BotState.ENTER_PROFILE_LINK
                     )
