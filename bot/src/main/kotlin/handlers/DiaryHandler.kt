@@ -58,7 +58,7 @@ class DiaryHandler(
                     // Есть заметка - показываем и сохраняем ID для редактирования
                     val user = usersRepository.getUserByMaxId(userId)
                     user?.let {
-                        it.partnerId = existingNote.id
+                        it.tempNoteId = existingNote.id
                         usersRepository.updateUser(it)
                     }
                     val dateFormatted = "${date.dayOfMonth}.${date.monthValue}.${date.year}"
@@ -72,7 +72,7 @@ class DiaryHandler(
                     val noteId = noteUseCase.createEmptyNote(userId, date)
                     val user = usersRepository.getUserByMaxId(userId)
                     user?.let {
-                        it.partnerId = noteId
+                        it.tempNoteId = noteId
                         usersRepository.updateUser(it)
                     }
                     return HandlerResult(
@@ -111,7 +111,7 @@ class DiaryHandler(
             if (level != null && level in 0..10) {
                 // Обновляем уровень тяги в заметке
                 val user = usersRepository.getUserByMaxId(userId)
-                val noteId = user?.partnerId
+                val noteId = user?.tempNoteId
                 if (noteId != null) {
                     noteUseCase.updatePullLevel(noteId, level)
                 }
@@ -133,19 +133,24 @@ class DiaryHandler(
     
     private suspend fun handleNote(text: String?, payload: String?, userId: Long): HandlerResult {
         if (payload == "back_to_menu") {
+            val user = usersRepository.getUserByMaxId(userId)
+            user?.let {
+                it.tempNoteId = null
+                usersRepository.updateUser(it)
+            }
             return HandlerResult("", null, BotState.MAIN_MENU)
         }
         
-        if (text != null && text.isNotBlank() && !text.startsWith("/") && payload == null) {
+        if (text != null && text.isNotBlank() && !text.startsWith("/")) {
             val user = usersRepository.getUserByMaxId(userId)
-            val noteId = user?.partnerId
+            val noteId = user?.tempNoteId
             
             if (noteId != null) {
                 try {
                     noteUseCase.updateNoteText(noteId, text)
                     
-                    // Очищаем partnerId
-                    user.partnerId = null
+                    // Очищаем tempNoteId
+                    user.tempNoteId = null
                     usersRepository.updateUser(user)
                     
                     return HandlerResult(
@@ -157,7 +162,7 @@ class DiaryHandler(
                     return HandlerResult(
                         text = "Ошибка: ${e.message}",
                         keyboard = Keyboards.backToMenu(),
-                        newState = BotState.DIARY_ENTER_NOTE
+                        newState = BotState.MAIN_MENU
                     )
                 }
             }
@@ -189,7 +194,7 @@ class DiaryHandler(
             "back_to_menu" -> {
                 val user = usersRepository.getUserByMaxId(userId)
                 user?.let {
-                    it.partnerId = null
+                    it.tempNoteId = null
                     usersRepository.updateUser(it)
                 }
                 return HandlerResult("", null, BotState.MAIN_MENU)
