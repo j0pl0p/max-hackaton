@@ -84,6 +84,20 @@ class DiaryHandler(
             }
         }
         
+        if (payload?.startsWith("diary_calendar_month:") == true) {
+            val monthData = payload.removePrefix("diary_calendar_month:")
+            val parts = monthData.split(":")
+            if (parts.size == 2) {
+                val year = parts[0].toInt()
+                val month = parts[1].toInt()
+                return HandlerResult(
+                    text = BotTexts.DIARY_CALENDAR_TITLE,
+                    keyboard = Keyboards.diaryCalendar(year, month),
+                    newState = BotState.DIARY_CALENDAR
+                )
+            }
+        }
+        
         return HandlerResult(
             text = BotTexts.DIARY_CALENDAR_TITLE,
             keyboard = Keyboards.diaryCalendar(),

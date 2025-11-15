@@ -62,13 +62,43 @@ object Keyboards {
             )
     }
 
-    // Дневник - календарь (упрощенный)
+    // Дневник - календарь
     fun diaryCalendar(year: Int = LocalDate.now().year, month: Int = LocalDate.now().monthValue): InlineKeyboardBuilder {
-        return InlineKeyboardBuilder.empty()
-            .addRow(CallbackButton("diary_calendar_date:2025-11-15", "Сегодня"))
-            .addRow(CallbackButton("diary_calendar_date:2025-11-14", "Вчера"))
-            .addRow(CallbackButton("diary_calendar_date:2025-11-13", "Позавчера"))
-            .addRow(CallbackButton("back_to_menu", "В меню"))
+        val yearMonth = YearMonth.of(year, month)
+        val daysInMonth = yearMonth.lengthOfMonth()
+        val monthName = yearMonth.month.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale("ru"))
+        
+        var builder = InlineKeyboardBuilder.empty()
+        
+        // Заголовок с месяцем и годом
+        builder = builder.addRow(CallbackButton("diary_month_info", "$monthName $year"))
+        
+        // Дни месяца по 7 в ряд
+        var currentRow = mutableListOf<CallbackButton>()
+        for (day in 1..daysInMonth) {
+            val dateStr = String.format("%04d-%02d-%02d", year, month, day)
+            currentRow.add(CallbackButton("diary_calendar_date:$dateStr", day.toString()))
+            
+            if (currentRow.size == 7 || day == daysInMonth) {
+                builder = builder.addRow(*currentRow.toTypedArray())
+                currentRow.clear()
+            }
+        }
+        
+        // Навигация по месяцам
+        val prevMonth = if (month == 1) 12 else month - 1
+        val prevYear = if (month == 1) year - 1 else year
+        val nextMonth = if (month == 12) 1 else month + 1
+        val nextYear = if (month == 12) year + 1 else year
+        
+        builder = builder.addRow(
+            CallbackButton("diary_calendar_month:$prevYear:$prevMonth", "◀ Пред"),
+            CallbackButton("diary_calendar_month:$nextYear:$nextMonth", "След ▶")
+        )
+        
+        builder = builder.addRow(CallbackButton("back_to_menu", "В меню"))
+        
+        return builder
     }
 
     // Дневник - выбор уровня тяги (0-10)

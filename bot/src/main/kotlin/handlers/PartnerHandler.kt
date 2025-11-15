@@ -62,7 +62,7 @@ class PartnerHandler(
                 }
                 
                 return HandlerResult(
-                    text = "Ищем напарника... Мы уведомим вас, когда найдем подходящего напарника.",
+                    text = "Ищем напарника... Напарник пока не найден: зайдите пойже",
                     keyboard = Keyboards.partnerNoPartner(),
                     newState = BotState.PARTNER_MENU
                 )
