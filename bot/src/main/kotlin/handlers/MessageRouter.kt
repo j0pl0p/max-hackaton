@@ -37,7 +37,8 @@ class MessageRouter(
                 lastActivity = LocalDateTime.now(),
                 isQuitting = false,
                 lastStart = null,
-                averageMonthlyExpenses = 0L
+                averageMonthlyExpenses = 0L,
+                maxStreak = 0
             ))
         }
     }

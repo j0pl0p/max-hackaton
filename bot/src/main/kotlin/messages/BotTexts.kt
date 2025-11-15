@@ -19,17 +19,18 @@ object BotTexts {
     // Напарник
     val NO_PARTNER_MESSAGE = "У вас пока нет напарника"
     fun getPartnerInfo(partnerName: String, days: Int) = """
-        Ваш напарник: $partnerName
-        Дней без курения: $days
+        🤝 Ваш напарник: $partnerName
+        🔥 Стрик напарника: $days дней
     """.trimIndent()
 
     // Статистика
-    fun getStatistics(lastDay: Int, totalDays: Int) = """
-        Среднее: последний день: $lastDay дней
-        Всего дней без курения: $totalDays
+    fun getStatistics(currentStreak: Int, maxStreak: Int) = """
+        🔥 Текущий стрик: $currentStreak дней
+        🏆 Максимальный стрик: $maxStreak дней
     """.trimIndent()
 
     val ACHIEVEMENTS_TITLE = "Достижения:"
+    val NO_AWARDS_MESSAGE = "🏆 Пока нет наград"
 
     // Дневник
     val DIARY_CALENDAR_TITLE = "Выберите дату для записи:"

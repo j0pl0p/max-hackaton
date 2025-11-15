@@ -58,6 +58,17 @@ object Keyboards {
     fun statistics(): InlineKeyboardBuilder {
         return InlineKeyboardBuilder.empty()
             .addRow(
+                CallbackButton("statistics_awards", "🏆 Мои награды")
+            )
+            .addRow(
+                CallbackButton("back_to_menu", "В меню")
+            )
+    }
+    
+    // Награды
+    fun awards(): InlineKeyboardBuilder {
+        return InlineKeyboardBuilder.empty()
+            .addRow(
                 CallbackButton("back_to_menu", "В меню")
             )
     }
